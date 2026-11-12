@@ -130,7 +130,15 @@ class AdminProvider extends ChangeNotifier {
   Future<void> setUserActive({
     required String uid,
     required bool isActive,
+    String? currentAdminUid,
   }) async {
+    if (!isActive && currentAdminUid != null && uid == currentAdminUid) {
+      const errorMsg = 'Administrators cannot disable their own account.';
+      _error = errorMsg;
+      notifyListeners();
+      throw const ValidationException(errorMsg);
+    }
+
     _submitting = true;
     _error = null;
     notifyListeners();

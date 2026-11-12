@@ -31,6 +31,8 @@ class MockAuthService implements AuthService {
   final Map<String, String> _passwords = {
     'reader@inkverse.com': 'password123',
     'author@inkverse.com': 'password123',
+    'elena@inkverse.com': 'password123',
+    'marcus@inkverse.com': 'password123',
     'admin@inkverse.com': 'password123',
     'disabled@inkverse.com': 'password123',
   };
@@ -38,6 +40,8 @@ class MockAuthService implements AuthService {
   final Map<String, String> _emailToUid = {
     'reader@inkverse.com': 'mock_user_reader',
     'author@inkverse.com': 'mock_user_author',
+    'elena@inkverse.com': 'mock_user_author_2',
+    'marcus@inkverse.com': 'mock_user_author_3',
     'admin@inkverse.com': 'mock_user_admin',
     'disabled@inkverse.com': 'mock_user_disabled',
   };
@@ -142,6 +146,23 @@ class MockUserRepository implements UserRepository {
       email: 'author@inkverse.com',
       role: UserRole.author,
       bio: 'Author of epic fantasy sagas.',
+      isActive: true,
+    );
+    _users['mock_user_author_2'] = const AppUser(
+      uid: 'mock_user_author_2',
+      fullName: 'Elena Rostova',
+      email: 'elena@inkverse.com',
+      role: UserRole.author,
+      bio:
+          'Author of atmospheric speculative fiction and historical mysteries.',
+      isActive: true,
+    );
+    _users['mock_user_author_3'] = const AppUser(
+      uid: 'mock_user_author_3',
+      fullName: 'Marcus Sterling',
+      email: 'marcus@inkverse.com',
+      role: UserRole.author,
+      bio: 'Hard sci-fi and cosmic horror worldbuilder.',
       isActive: true,
     );
     _users['mock_user_admin'] = const AppUser(
@@ -354,6 +375,57 @@ class MockNovelRepository implements NovelRepository {
         publishedAt: now.subtract(const Duration(days: 14)),
       ),
       Novel(
+        id: 'novel_6',
+        authorId: 'mock_user_author_2',
+        authorName: 'Elena Rostova',
+        title: 'City of Glass Rivers',
+        description: 'Beneath the transparent obsidian bridges of Oakhaven, a network of forgotten aqueducts carries memories distilled into luminous liquid glass.',
+        coverUrl: 'https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=600',
+        genres: const ['Fantasy', 'Mystery'],
+        status: NovelStatus.ongoing,
+        visibility: NovelVisibility.published,
+        chapterCount: 2,
+        viewCount: 1840,
+        followerCount: 310,
+        createdAt: now.subtract(const Duration(days: 60)),
+        updatedAt: now.subtract(const Duration(days: 4)),
+        publishedAt: now.subtract(const Duration(days: 55)),
+      ),
+      Novel(
+        id: 'novel_7',
+        authorId: 'mock_user_author_2',
+        authorName: 'Elena Rostova',
+        title: 'The Orchard at the End of Winter',
+        description: 'An elderly botanist and a wayward traveler cultivate frost-resistant apple groves while sharing stories of the world before the eternal permafrost arrived.',
+        coverUrl: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600',
+        genres: const ['Slice of Life', 'Romance', 'Drama'],
+        status: NovelStatus.completed,
+        visibility: NovelVisibility.published,
+        chapterCount: 1,
+        viewCount: 940,
+        followerCount: 180,
+        createdAt: now.subtract(const Duration(days: 75)),
+        updatedAt: now.subtract(const Duration(days: 12)),
+        publishedAt: now.subtract(const Duration(days: 70)),
+      ),
+      Novel(
+        id: 'novel_8',
+        authorId: 'mock_user_author_3',
+        authorName: 'Marcus Sterling',
+        title: 'Letters from the Hollow Moon',
+        description: 'Transmissions from a subterranean lunar research facility cease unexpectedly, leaving a lone radio communications specialist to decipher the encrypted logs.',
+        coverUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600',
+        genres: const ['Sci-Fi', 'Drama'],
+        status: NovelStatus.ongoing,
+        visibility: NovelVisibility.published,
+        chapterCount: 2,
+        viewCount: 2600,
+        followerCount: 485,
+        createdAt: now.subtract(const Duration(days: 40)),
+        updatedAt: now.subtract(const Duration(hours: 8)),
+        publishedAt: now.subtract(const Duration(days: 38)),
+      ),
+      Novel(
         id: 'novel_draft_1',
         authorId: 'mock_user_author',
         authorName: 'Bob Novelist',
@@ -498,6 +570,18 @@ class MockNovelRepository implements NovelRepository {
         'You can only publish your own novel.',
       );
     }
+    if (existing.title.trim().isEmpty ||
+        existing.description.trim().isEmpty ||
+        existing.genres.isEmpty) {
+      throw const ValidationException(
+        'Novel title, description, and genres are required to publish.',
+      );
+    }
+    if (existing.chapterCount <= 0) {
+      throw const ValidationException(
+        'The novel must contain at least one published chapter before publishing.',
+      );
+    }
 
     _novels[id] = existing.copyWith(
       visibility: NovelVisibility.published,
@@ -527,13 +611,19 @@ class MockNovelRepository implements NovelRepository {
   @override
   Future<void> restoreNovel(String id) async {
     final existing = _novels[id];
-    if (existing != null) {
-      _novels[id] = existing.copyWith(
-        visibility: NovelVisibility.published,
-        updatedAt: DateTime.now(),
-      );
-      _notify();
+    if (existing == null) {
+      throw const NotFoundException('Novel not found.');
     }
+    if (existing.publishedAt == null && existing.chapterCount == 0) {
+      throw const ValidationException(
+        'Cannot restore an incomplete draft novel to published state.',
+      );
+    }
+    _novels[id] = existing.copyWith(
+      visibility: NovelVisibility.published,
+      updatedAt: DateTime.now(),
+    );
+    _notify();
   }
 
   void updateChapterCount(String novelId, int count) {
@@ -704,6 +794,105 @@ class MockChapterRepository implements ChapterRepository {
       updatedAt: now.subtract(const Duration(days: 14)),
       publishedAt: now.subtract(const Duration(days: 14)),
       wordCount: 43,
+    );
+
+    // Novel 6 chapters (Elena Rostova)
+    _chapters['chap_6_1'] = Chapter(
+      id: 'chap_6_1',
+      novelId: 'novel_6',
+      authorId: 'mock_user_author_2',
+      title: 'Chapter 1: The Glassmaker’s Secret',
+      chapterNumber: 1,
+      content: 'Under the midnight arches of Oakhaven, the canals ran not with water, but with molten sapphire. Master Vane dipped his iron ladle into the river, scooping up a cup of liquid memory.',
+      status: ChapterStatus.published,
+      createdAt: now.subtract(const Duration(days: 55)),
+      updatedAt: now.subtract(const Duration(days: 55)),
+      publishedAt: now.subtract(const Duration(days: 55)),
+      wordCount: 35,
+    );
+    _chapters['chap_6_2'] = Chapter(
+      id: 'chap_6_2',
+      novelId: 'novel_6',
+      authorId: 'mock_user_author_2',
+      title: 'Chapter 2: Echoes in the Sluice',
+      chapterNumber: 2,
+      content: 'A crack resounded through the lower culvert. Liquid crystal splashed against the cobblestones, freezing into shards of forgotten laughter from a century before.',
+      status: ChapterStatus.published,
+      createdAt: now.subtract(const Duration(days: 20)),
+      updatedAt: now.subtract(const Duration(days: 20)),
+      publishedAt: now.subtract(const Duration(days: 20)),
+      wordCount: 26,
+    );
+
+    // Novel 7 chapters (Elena Rostova)
+    _chapters['chap_7_1'] = Chapter(
+      id: 'chap_7_1',
+      novelId: 'novel_7',
+      authorId: 'mock_user_author_2',
+      title: 'Chapter 1: The First Blossom',
+      chapterNumber: 1,
+      content: 'Snow clung to the gnarled branches of the heirloom orchard. Old Sean touched the frost-dusted bark with warm wool mittens, whispering the rites that kept the roots alive beneath sixty feet of permafrost.',
+      status: ChapterStatus.published,
+      createdAt: now.subtract(const Duration(days: 70)),
+      updatedAt: now.subtract(const Duration(days: 70)),
+      publishedAt: now.subtract(const Duration(days: 70)),
+      wordCount: 34,
+    );
+
+    // Novel 8 chapters (Marcus Sterling - published + draft)
+    _chapters['chap_8_1'] = Chapter(
+      id: 'chap_8_1',
+      novelId: 'novel_8',
+      authorId: 'mock_user_author_3',
+      title: 'Chapter 1: Static on the Relay',
+      chapterNumber: 1,
+      content: 'The seismograph inside Sector 4 showed a steady, repeating cadence: three pulses, a half-second silence, then three pulses again. Not an earthquake. A heartbeat.',
+      status: ChapterStatus.published,
+      createdAt: now.subtract(const Duration(days: 38)),
+      updatedAt: now.subtract(const Duration(days: 38)),
+      publishedAt: now.subtract(const Duration(days: 38)),
+      wordCount: 26,
+    );
+    _chapters['chap_8_2'] = Chapter(
+      id: 'chap_8_2',
+      novelId: 'novel_8',
+      authorId: 'mock_user_author_3',
+      title: 'Chapter 2: The Crater Depth',
+      chapterNumber: 2,
+      content: 'Descending into the sub-crustal crevasse required three anchors and absolute trust in the auxiliary carbon winch. Below the rim, the vacuum smelled faintly of crushed basalt.',
+      status: ChapterStatus.published,
+      createdAt: now.subtract(const Duration(days: 10)),
+      updatedAt: now.subtract(const Duration(days: 10)),
+      publishedAt: now.subtract(const Duration(days: 10)),
+      wordCount: 27,
+    );
+    _chapters['chap_8_3'] = Chapter(
+      id: 'chap_8_3',
+      novelId: 'novel_8',
+      authorId: 'mock_user_author_3',
+      title: 'Chapter 3: Signal Decrypted (Draft)',
+      chapterNumber: 3,
+      content: 'Draft content for author Marcus Sterling. Not yet visible to public readers.',
+      status: ChapterStatus.draft,
+      createdAt: now,
+      updatedAt: now,
+      publishedAt: null,
+      wordCount: 12,
+    );
+
+    // Draft novel chapter (Unpublished novel draft)
+    _chapters['chap_draft_1_1'] = Chapter(
+      id: 'chap_draft_1_1',
+      novelId: 'novel_draft_1',
+      authorId: 'mock_user_author',
+      title: 'Chapter 1: Dark Matter Whispers (Draft)',
+      chapterNumber: 1,
+      content: 'An author work in progress chapter. Saved as draft.',
+      status: ChapterStatus.draft,
+      createdAt: now,
+      updatedAt: now,
+      publishedAt: null,
+      wordCount: 10,
     );
   }
 
@@ -890,12 +1079,21 @@ class MockLibraryRepository implements LibraryRepository {
   }
 
   void _seedLibrary() {
-    // Initial mock follow for reader
+    // Initial mock follows for reader
     _follows['mock_user_reader_novel_1'] = Follow.create(
       userId: 'mock_user_reader',
       novelId: 'novel_1',
     );
-    // Initial mock bookmark
+    _follows['mock_user_reader_novel_3'] = Follow.create(
+      userId: 'mock_user_reader',
+      novelId: 'novel_3',
+    );
+    _follows['mock_user_reader_novel_8'] = Follow.create(
+      userId: 'mock_user_reader',
+      novelId: 'novel_8',
+    );
+
+    // Initial mock bookmarks
     _bookmarks['mock_user_reader_novel_1_chap_1_1'] = Bookmark.create(
       userId: 'mock_user_reader',
       novelId: 'novel_1',
@@ -904,6 +1102,15 @@ class MockLibraryRepository implements LibraryRepository {
       novelTitle: 'The Last Star Keeper',
       chapterTitle: 'Chapter 1: The Dying Lantern',
     );
+    _bookmarks['mock_user_reader_novel_3_chap_3_1'] = Bookmark.create(
+      userId: 'mock_user_reader',
+      novelId: 'novel_3',
+      chapterId: 'chap_3_1',
+      chapterNumber: 1,
+      novelTitle: "The Clockmaker's Daughter",
+      chapterTitle: 'Chapter 1: Borrowed Minutes',
+    );
+
     // Initial reading progress
     _reading['mock_user_reader_novel_1'] = ReadingProgress.create(
       userId: 'mock_user_reader',
@@ -915,6 +1122,17 @@ class MockLibraryRepository implements LibraryRepository {
       chapterTitle: 'Chapter 2: The Weave of Shadows',
       chapterNumber: 2,
       progressPercent: 1.0,
+    );
+    _reading['mock_user_reader_novel_6'] = ReadingProgress.create(
+      userId: 'mock_user_reader',
+      novelId: 'novel_6',
+      novelTitle: 'City of Glass Rivers',
+      coverUrl:
+          'https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=600',
+      chapterId: 'chap_6_1',
+      chapterTitle: 'Chapter 1: The Glassmaker’s Secret',
+      chapterNumber: 1,
+      progressPercent: 0.65,
     );
   }
 
@@ -1032,6 +1250,24 @@ class MockCommentRepository implements CommentRepository {
       content: 'The imagery of the dying lanterns is breathtaking!',
       createdAt: DateTime.now().subtract(const Duration(days: 2)),
     );
+    _comments['comment_2'] = ChapterComment(
+      id: 'comment_2',
+      userId: 'mock_user_reader',
+      userName: 'Alice Reader',
+      novelId: 'novel_1',
+      chapterId: 'chap_1_2',
+      content: 'Master Donald is such an intriguing character.',
+      createdAt: DateTime.now().subtract(const Duration(days: 1)),
+    );
+    _comments['comment_3'] = ChapterComment(
+      id: 'comment_3',
+      userId: 'mock_user_reader',
+      userName: 'Alice Reader',
+      novelId: 'novel_6',
+      chapterId: 'chap_6_1',
+      content: 'Molten sapphire rivers! What a wonderful fantasy concept.',
+      createdAt: DateTime.now().subtract(const Duration(hours: 14)),
+    );
   }
 
   @override
@@ -1138,6 +1374,28 @@ class MockReportRepository implements ReportRepository {
       description: 'Suspicious external link in comment section.',
       status: ReportStatus.pending,
       createdAt: DateTime.now().subtract(const Duration(hours: 12)),
+    );
+    _reports['report_2'] = ContentReport(
+      id: 'report_2',
+      reporterId: 'mock_user_reader',
+      targetType: 'novel',
+      targetId: 'novel_1',
+      reason: 'Plagiarism Inquiry',
+      description: 'Checking similarity with another classic sci-fi.',
+      status: ReportStatus.resolved,
+      reviewedAt: DateTime.now().subtract(const Duration(hours: 4)),
+      reviewedBy: 'mock_user_admin',
+      createdAt: DateTime.now().subtract(const Duration(days: 1)),
+    );
+    _reports['report_3'] = ContentReport(
+      id: 'report_3',
+      reporterId: 'mock_user_reader',
+      targetType: 'chapter',
+      targetId: 'chap_2_1',
+      reason: 'Typo / Formatting issue',
+      description: 'Repeated sentence on paragraph three.',
+      status: ReportStatus.pending,
+      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
     );
   }
 

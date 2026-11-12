@@ -34,6 +34,19 @@ class AppException implements Exception {
           );
         case 'user-disabled':
           return const AuthException('This account has been disabled.');
+        case 'too-many-requests':
+          return const AuthException(
+            'Too many attempts. Please try again in a few moments.',
+          );
+        case 'network-request-failed':
+          return const AppException(
+            'Network error. Please check your internet connection.',
+            code: 'network-request-failed',
+          );
+        case 'channel-error':
+          return const ValidationException(
+            'Please fill in all required fields.',
+          );
         case 'permission-denied':
           return const PermissionDeniedException(
             'You do not have permission to perform this action.',

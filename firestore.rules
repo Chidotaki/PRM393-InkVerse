@@ -1,0 +1,220 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------------------------------------------------------------------------
+    // Helper Functions
+    // -------------------------------------------------------------------------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        getUserData().role == 'admin' &&
+        getUserData().isActive == true;
+    }
+
+    function isAuthor() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        (getUserData().role == 'author' || getUserData().role == 'admin') &&
+        getUserData().isActive == true;
+    }
+
+    // -------------------------------------------------------------------------
+    // Users Collection
+    // -------------------------------------------------------------------------
+    match /users/{userId} {
+      // Authenticated users can read profiles
+      allow read: if isSignedIn();
+
+      // Creation upon registration: must match UID, default reader role, isActive true
+      allow create: if isOwner(userId) &&
+        request.resource.data.uid == userId &&
+        request.resource.data.role == 'reader' &&
+        request.resource.data.isActive == true;
+
+      // Update rules:
+      // 1. Admin can update any field (e.g. enable/disable, role management)
+      // 2. Normal user can update own profile fields (fullName, bio, avatarUrl)
+      // 3. Reader -> Author self-promotion is explicitly allowed; Admin self-promotion is strictly FORBIDDEN.
+      allow update: if isAdmin() || (
+        isOwner(userId) &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.email == resource.data.email &&
+        request.resource.data.isActive == resource.data.isActive &&
+        (
+          // Case A: Role unchanged, updating profile fields
+          (request.resource.data.role == resource.data.role) ||
+          // Case B: reader -> author transition only
+          (resource.data.role == 'reader' && request.resource.data.role == 'author')
+        )
+      );
+
+      // Deleting user profiles is restricted to platform admin
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // Novels Collection
+    // -------------------------------------------------------------------------
+    match /novels/{novelId} {
+      // Public published novels can be read by any signed in user.
+      // Drafts/hidden can only be viewed by author or admin.
+      allow read: if isSignedIn() && (
+        resource.data.visibility == 'published' ||
+        resource.data.authorId == request.auth.uid ||
+        isAdmin()
+      );
+
+      // Create novel: requires author role and authorId match
+      allow create: if isAuthor() &&
+        request.resource.data.authorId == request.auth.uid &&
+        request.resource.data.visibility == 'draft';
+
+      // Update: author owner or admin. authorId ownership cannot be reassigned.
+      // Follower count and view count increments are allowed.
+      allow update: if isSignedIn() && (
+        (isOwner(resource.data.authorId) && request.resource.data.authorId == resource.data.authorId) ||
+        isAdmin() ||
+        // Allow counter increments (viewCount, followerCount)
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerCount']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['chapterCount', 'updatedAt'])
+        )
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // Chapters Collection
+    // -------------------------------------------------------------------------
+    match /chapters/{chapterId} {
+      allow read: if isSignedIn() && (
+        resource.data.status == 'published' ||
+        resource.data.authorId == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow create: if isAuthor() &&
+        request.resource.data.authorId == request.auth.uid;
+
+      allow update: if isSignedIn() && (
+        (isOwner(resource.data.authorId) && request.resource.data.authorId == resource.data.authorId) ||
+        isAdmin()
+      );
+
+      allow delete: if isSignedIn() && (
+        (isOwner(resource.data.authorId) && resource.data.status == 'draft') ||
+        isAdmin()
+      );
+    }
+
+    // -------------------------------------------------------------------------
+    // Follows Collection
+    // -------------------------------------------------------------------------
+    match /follows/{followId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid;
+
+      allow delete: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+
+    // -------------------------------------------------------------------------
+    // Bookmarks Collection
+    // -------------------------------------------------------------------------
+    match /bookmarks/{bookmarkId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid;
+
+      allow update, delete: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+
+    // -------------------------------------------------------------------------
+    // Reading Progress Collection
+    // -------------------------------------------------------------------------
+    match /reading_progress/{progressId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow create, update: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid;
+
+      allow delete: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+
+    // -------------------------------------------------------------------------
+    // Comments Collection
+    // -------------------------------------------------------------------------
+    match /comments/{commentId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.content.size() > 0 &&
+        request.resource.data.isDeleted == false;
+
+      // User can edit own comment; author or admin can soft delete / hide
+      allow update: if isSignedIn() && (
+        (resource.data.userId == request.auth.uid) ||
+        isAdmin()
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // Reports Collection
+    // -------------------------------------------------------------------------
+    match /reports/{reportId} {
+      // Normal readers can only create reports; only admin can list/read/resolve
+      allow create: if isSignedIn() &&
+        request.resource.data.reporterId == request.auth.uid &&
+        request.resource.data.status == 'pending';
+
+      allow read, update, delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // Genres Collection
+    // -------------------------------------------------------------------------
+    match /genres/{genreId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}

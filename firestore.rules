@@ -32,6 +32,15 @@ service cloud.firestore {
         getUserData().isActive == true;
     }
 
+    // Chapter list queries are scoped by novelId. Resolve ownership through
+    // the parent novel so Firestore can authorize an author's whole chapter
+    // list without treating security rules as a post-query filter.
+    function ownsNovel(novelId) {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/novels/$(novelId)) &&
+        get(/databases/$(database)/documents/novels/$(novelId)).data.authorId == request.auth.uid;
+    }
+
     // -------------------------------------------------------------------------
     // Users Collection
     // -------------------------------------------------------------------------
@@ -103,23 +112,43 @@ service cloud.firestore {
     // Chapters Collection
     // -------------------------------------------------------------------------
     match /chapters/{chapterId} {
+      // Published chapters are readable by signed-in readers.
+      // Authors can read every chapter belonging to one of their own novels,
+      // which makes novelId-scoped author queries compatible with Firestore's
+      // query authorization model.
       allow read: if isSignedIn() && (
         resource.data.status == 'published' ||
-        resource.data.authorId == request.auth.uid ||
+        ownsNovel(resource.data.novelId) ||
         isAdmin()
       );
 
+      // Authors may create chapters only inside novels they actually own.
+      // This also prevents attaching a chapter to another author's novel.
       allow create: if isAuthor() &&
+        ownsNovel(request.resource.data.novelId) &&
         request.resource.data.authorId == request.auth.uid;
 
+      // Preserve immutable ownership links for normal authors.
+      // Admin keeps moderation-wide update capability.
       allow update: if isSignedIn() && (
-        (isOwner(resource.data.authorId) && request.resource.data.authorId == resource.data.authorId) ||
-        isAdmin()
+        isAdmin() ||
+        (
+          isAuthor() &&
+          ownsNovel(resource.data.novelId) &&
+          resource.data.authorId == request.auth.uid &&
+          request.resource.data.authorId == resource.data.authorId &&
+          request.resource.data.novelId == resource.data.novelId
+        )
       );
 
       allow delete: if isSignedIn() && (
-        (isOwner(resource.data.authorId) && resource.data.status == 'draft') ||
-        isAdmin()
+        isAdmin() ||
+        (
+          isAuthor() &&
+          ownsNovel(resource.data.novelId) &&
+          resource.data.authorId == request.auth.uid &&
+          resource.data.status == 'draft'
+        )
       );
     }
 

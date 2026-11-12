@@ -3,43 +3,26 @@
 **Project**: InkVerse (PRM393 University Group Project)  
 **Repository**: [Chidotaki/PRM393-InkVerse](https://github.com/Chidotaki/PRM393-InkVerse)  
 **Package**: `inkverse` (`com.prm393.inkverse`)  
-**Current Milestone**: Phase 3 Complete (Core Architecture, Dual-Backend, Navigation Shell & Hardening)  
+**Current Milestone**: Phase 4 Complete (Firebase Tooling Installed, CI Configured, Security Hardened, Demo Script Prepared)  
 
 ---
 
 ## 1. Status by Area
 
-### Core Foundation
-- **State**: **Complete & Hardened**
-- **Artifacts**:
-  - Domain models: `AppUser`, `Novel`, `Chapter`, `Follow`, `Bookmark`, `ReadingProgress`, `ChapterComment`, `ContentReport`, `Genre`.
-  - Repositories: 7 abstract interfaces with full in-memory mock and Firebase implementations.
-  - Providers: 7 ChangeNotifier providers covering all domain logic, validation, and reactive streams.
-  - Auth Flow: Material 3 `LoginScreen`, `RegisterScreen`, `AccountDisabledScreen`, `AuthGateScreen`.
-  - App Shell: `MainNavigationShell` with Material 3 `NavigationBar` for 4 Reader tabs (`/home`, `/discover`, `/library`, `/profile`) and contextual Author/Admin studio shortcuts.
-  - Routing: Role-guarded `go_router` supporting seamless tab switching and fullscreen sub-routes.
-  - Placeholders: Minimal temporary scaffolds in `lib/app/integration_placeholders.dart` ready to be replaced upon teammate PR merge.
-
-### Firebase Integration
-- **Source Code**: **Complete** (All Firestore collections, indexes, security rules, error handling, session restore).
-- **Runtime Setup**: **External Configuration Required** (Awaiting `flutterfire configure` execution with live Firebase project).
-- **Graceful Fallback**: Missing credentials caught at startup, rendering `FirebaseUnconfiguredScreen` with setup instructions and instant mock backend launch button.
-- **Rule Verification**: Security rules (`firestore.rules`) and indexes (`firestore.indexes.json`) configured and mapped via `firebase.json`.
-
-### Reader UI Module (Member 2)
-- **State**: **Assigned** ([GitHub Issue #1](https://github.com/Chidotaki/PRM393-InkVerse/issues/1))
-- **Branch**: `feature/reader-ui`
-- **Scope**: Reader Home, Discover, Novel Detail, Reading View, Library, Profile.
-
-### Author & Admin UI Modules (Member 3)
-- **State**: **Assigned** ([GitHub Issue #2](https://github.com/Chidotaki/PRM393-InkVerse/issues/2))
-- **Branch**: `feature/author-admin-ui`
-- **Scope**: Author Studio Dashboard, Novel Form, Chapter Management, Admin Control Center, User Moderation, Content Moderation, Report Triage, Genre Taxonomy.
-
-### Quality & Testing
-- **Analyzer**: `flutter analyze` reports **0 issues**.
-- **Unit & Integration Suite**: All unit and widget tests passing.
-- **Web Build**: Release web compilation succeeds with mock backend.
+| Area | Status | Version / Details |
+| :--- | :--- | :--- |
+| **Core Architecture** | **Complete** | Models, 7 Repositories, 7 Providers, Material 3 App & Literary Theme |
+| **Navigation Shell** | **Complete** | `MainNavigationShell` with bottom navigation, role shortcuts & full-screen sub-routes |
+| **Mock Backend** | **Complete** | 8+ novels, 3 authors, chapters, comments, reports, 4 test accounts |
+| **Firebase CLI** | **Installed** | `firebase-tools` v15.36.0 installed globally via npm |
+| **FlutterFire CLI** | **Installed** | `flutterfire_cli` v1.5.0 activated via Dart Pub |
+| **Firebase Cloud Project** | **External Login Required** | CLI installed; awaits interactive developer browser login (`firebase login`) |
+| **Firestore Rules & Config** | **Complete** | `firestore.rules`, `firestore.indexes.json`, `firebase.json`, `docs/FIRESTORE_SECURITY.md` |
+| **CI / Automation** | **Complete** | GitHub Actions workflow: `.github/workflows/flutter-ci.yml` (Format, Analyze, Test, Web Build) |
+| **Secret Protection** | **Verified Clean** | `.gitignore` hardened; secret scans confirmed zero private keys or tokens |
+| **Reader UI Module** | **Assigned** | Owned by Member 2 ([Issue #1](https://github.com/Chidotaki/PRM393-InkVerse/issues/1)) |
+| **Author & Admin UI** | **Assigned** | Owned by Member 3 ([Issue #2](https://github.com/Chidotaki/PRM393-InkVerse/issues/2)) |
+| **Final Integration** | **Pending UI Branches** | Clean placeholders ready to receive teammate screens directly |
 
 ---
 
@@ -53,18 +36,20 @@
 - [ ] Full Admin flow tested (Suspend/Unsuspend User -> Hide/Restore Novel -> Resolve Report -> Manage Genres)
 - [x] Mock build passes (`flutter build web --dart-define=USE_MOCK_BACKEND=true`)
 - [ ] Firebase build passes (Pending live Firebase credentials)
-- [ ] Android build passes
+- [ ] Android build passes (Android SDK not installed on host machine)
+- [x] GitHub Actions CI workflow created (`.github/workflows/flutter-ci.yml`)
+- [x] Security scan verified clean (0 secrets / keys leaked)
 - [x] `flutter analyze` passes (0 issues)
-- [x] `flutter test` passes
+- [x] `flutter test` passes (27/27 tests passed)
 
 ---
 
 ## 3. Known Blockers & Next Actions
 
-1. **Teammate UI Branches**:
-   - Member 2 should pull latest `main`, create `feature/reader-ui`, and replace the Reader screen placeholders.
-   - Member 3 should pull latest `main`, create `feature/author-admin-ui`, and replace the Author and Admin placeholders.
-2. **External Firebase Project Configuration**:
-   - Install Firebase CLI and run `firebase login` on the deployment host.
-   - Run `flutterfire configure` to generate `lib/firebase_options.dart`.
-   - Deploy Firestore rules: `firebase deploy --only firestore`.
+1. **Teammate UI Deliverables**:
+   - Member 2 should pull latest `main`, branch `feature/reader-ui`, and replace Reader screen placeholders.
+   - Member 3 should pull latest `main`, branch `feature/author-admin-ui`, and replace Author and Admin screen placeholders.
+2. **External Cloud Setup**:
+   - Run `firebase login` on an interactive terminal.
+   - Run `flutterfire configure` to bind live Firebase project and generate `lib/firebase_options.dart`.
+   - Deploy Firestore assets: `firebase deploy --only firestore`.

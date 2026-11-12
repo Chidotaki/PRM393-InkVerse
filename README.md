@@ -3,7 +3,7 @@
 **PRM393 Group Project** • University Course Project  
 **Repository**: [Chidotaki/PRM393-InkVerse](https://github.com/Chidotaki/PRM393-InkVerse)  
 **Package**: `inkverse` (`com.prm393.inkverse`)  
-**Team Size**: 3 Members  
+**Production Firebase**: `inkverse-prm393-812005`  
 
 ---
 
@@ -31,38 +31,21 @@
 
 ---
 
-## 3. Team Structure & Ownership
+## 3. Product Architecture & Modules
 
-| Member | Focus | Branch | Deliverables |
-| :--- | :--- | :--- | :--- |
-| **Lead Developer** | Architecture & Core | `feature/core-integration` | Models, Repositories, Providers, Auth Screens, Navigation Shell & Routing, Security Rules, Firebase / Mock Fallback, CI |
-| **Member 2** | Reader UI Module | `feature/reader-ui` | Reader Home, Discover, Novel Detail, Reading View, Library, Bookmarks, Profile |
-| **Member 3** | Author & Admin UI | `feature/author-admin-ui` | Author Studio, Novel Form, Chapter Management, Admin Console, Moderation, Genres |
-
-*See [`docs/TEAM_OWNERSHIP.md`](docs/TEAM_OWNERSHIP.md) and [`docs/TEAM_CONTRACTS.md`](docs/TEAM_CONTRACTS.md) for full integration details.*
-
----
-
-## 4. Current Project Status
-
-| Area | Status | Notes |
+| Module | Status | Screens Included |
 | :--- | :--- | :--- |
-| **Core Architecture** | **Complete** | Models, 7 Repositories, 7 Providers, Material 3 App & Theme |
-| **Navigation Shell** | **Complete** | `MainNavigationShell` with bottom navigation, role shortcuts & full-screen sub-routes |
-| **Mock Backend** | **Complete** | 8+ novels, 3 authors, chapters, comments, reports, 4 test accounts |
-| **Firebase Tooling** | **Installed** | `firebase-tools` (v15.36.0) & `flutterfire_cli` (v1.5.0) installed |
-| **Firebase Cloud Project** | **External Login Required** | Source ready; awaits developer interactive browser login (`firebase login`) |
-| **Firestore Security** | **Complete & Hardened** | Full rules in `firestore.rules`; documented in [`docs/FIRESTORE_SECURITY.md`](docs/FIRESTORE_SECURITY.md) |
-| **Continuous Integration** | **Configured** | GitHub Actions CI workflow in `.github/workflows/flutter-ci.yml` |
-| **Reader UI** | **Assigned** | Owned by Member 2 ([Issue #1](https://github.com/Chidotaki/PRM393-InkVerse/issues/1)) |
-| **Author & Admin UI** | **Assigned** | Owned by Member 3 ([Issue #2](https://github.com/Chidotaki/PRM393-InkVerse/issues/2)) |
-| **Final Integration** | **Pending UI branches** | Shell & placeholders ready for direct screen replacement |
+| **Core Architecture** | **Complete** | Models, 7 Repositories, 7 Providers, Navigation Shell, Theme, Security Rules |
+| **Reader UI** | **Complete** | Home, Discover, Novel Detail, Reading Screen, Library, Bookmarks, Profile |
+| **Author Studio** | **Complete** | Author Dashboard, My Novels, Novel Form, Chapter Management, Chapter Form |
+| **Admin Console** | **Complete** | Admin Dashboard, User Management, Novel Moderation, Content Reports, Genre Taxonomy |
+| **Backend Integration** | **Complete** | Cloud Firebase (`inkverse-prm393-812005`) & In-Memory Mock Backend |
 
-*See [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) for the detailed status and [`docs/DEMO_FLOW.md`](docs/DEMO_FLOW.md) for presentation instructions.*
+*See [`docs/TEAM_OWNERSHIP.md`](docs/TEAM_OWNERSHIP.md) and [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) for full architecture details.*
 
 ---
 
-## 5. Getting Started & Installation
+## 4. Getting Started & Installation
 
 ### Prerequisites
 - [Flutter SDK](https://docs.flutter.dev/) (>= 3.13.2)
@@ -91,65 +74,31 @@ flutter run -d chrome --dart-define=USE_MOCK_BACKEND=true
 | **Disabled** | `disabled@inkverse.com` | `password123` |
 
 ### 3. Run with Cloud Firebase (Production Mode)
-Follow the step-by-step setup in [`FIREBASE_SETUP.md`](FIREBASE_SETUP.md):
 ```bash
-firebase login
-flutterfire configure
-firebase deploy --only firestore
 flutter run -d chrome
 ```
 
----
-
-## 6. Architecture & Clean Code
-
-InkVerse strictly separates concerns:
-- **Presentation**: `MainNavigationShell` with persistent bottom bar + fullscreen sub-routes, reactive screens using `context.watch<T>()`.
-- **Controllers (Providers)**: Business rules, validation, derived lists (`visibleNovels`), loading states.
-- **Repository Abstraction**: Polymorphic contracts allowing seamless switching between `Firebase*Repository` and `Mock*Repository`.
-- **Infrastructure**: Firebase Auth, Cloud Firestore, SharedPreferences.
-
-For in-depth architecture details, consult [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+To enable development catalog seeding in Profile (admin account required):
+```bash
+flutter run -d chrome --dart-define=ENABLE_DEV_SEED=true
+```
 
 ---
 
-## 7. Quality Assurance & Continuous Integration
+## 5. Verification & Testing
 
-Format, analyze, and run test suites:
+Run the full automated test suite:
+```bash
+flutter test
+```
+
+Run static analysis:
 ```bash
 dart format lib test
 flutter analyze
-flutter test
-```
-*Current test suite status: 27/27 tests passing, 0 analyzer issues found.*
-
-Automated CI runs via **GitHub Actions** on every push and pull request to `main` and `feature/**` branches, executing format check, static analysis, unit/widget tests, and release web compilation.
-
----
-
-## 8. Simplified Direct-to-Main Git Workflow
-
-All members branch from `main` and submit Pull Requests directly into `main`:
-
-```text
-feature/core-integration   ──► Pull Request ──► main
-feature/reader-ui          ──► Pull Request ──► main
-feature/author-admin-ui    ──► Pull Request ──► main
 ```
 
-### Standard Feature Flow:
+Build production web bundle:
 ```bash
-# 1. Start from latest main
-git checkout main
-git pull origin main
-git checkout -b feature/<your-feature-name>
-
-# 2. Before creating PR, pull latest main changes and test
-git fetch origin
-git merge origin/main
-flutter analyze
-flutter test
-
-# 3. Push and open PR targeting main
-git push origin feature/<your-feature-name>
+flutter build web
 ```

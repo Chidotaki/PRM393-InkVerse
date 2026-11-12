@@ -1,93 +1,85 @@
-# InkVerse – Team Responsibilities & Ownership Matrix
+# InkVerse – Architecture, Modules & Team Deliverables
 
-This document defines module boundaries, ownership, and branch workflow for the PRM393 group project.
-
----
-
-## 1. Team Allocation
-
-| Member | Role | Assigned Modules | Working Branch | GitHub Issue |
-| :--- | :--- | :--- | :--- | :--- |
-| **Lead Developer** | Architecture & Core Foundation | Models, Repositories, Providers, Services, Auth Screens, Navigation Shell, Routing, Security Rules, Firebase Integration | `feature/core-integration` | Lead Core Task |
-| **Member 2** | Reader UI Developer | Reader Home, Discover, Novel Detail, Reading Screen, Library, Profile, Reader reusable widgets | `feature/reader-ui` | Issue #1 |
-| **Member 3** | Author & Admin UI Developer | Author Dashboard, My Novels, Novel Form, Chapter Management, Admin Dashboard, Users, Moderation, Reports, Genres | `feature/author-admin-ui` | Issue #2 |
+This document defines module boundaries, architecture, and completed project deliverables for the PRM393 group project.
 
 ---
 
-## 2. Component Ownership Boundaries
+## 1. System Modules & Status Overview
 
-### Lead Developer (Core)
+| Module | Scope / Key Screens | Status | Deliverables |
+| :--- | :--- | :--- | :--- |
+| **Core Architecture** | Models, 7 Repositories, 7 Providers, Auth Gate, Navigation Shell, Theme, Security Rules | **Complete** | Production Firestore & Mock suites, robust business rule validations |
+| **Reader Experience** | Reader Home, Discover, Novel Detail, Reading Screen, Library, Bookmarks, History, Profile | **Complete** | Full reading settings, chapter navigation, progress tracking, follow & comment integration |
+| **Author Studio** | Author Dashboard, My Novels, Novel Form, Chapter Management, Chapter Form | **Complete** | Serial authoring, chapter sequencing, drafting, publishing, archiving |
+| **Admin Console** | Admin Dashboard, User Management, Novel Moderation, Content Reports, Genre Taxonomy | **Complete** | Platform metrics, user state toggling, content moderation, report resolution, taxonomy curation |
+| **Backend Integration** | Firebase Authentication, Cloud Firestore, Firebase Dev Seeder | **Complete** | Idempotent dev seeding, secure security rules, web & android configuration |
+
+---
+
+## 2. Component Deliverables
+
+### Core Foundation
 - **Directory Scope**:
-  - `lib/core/`
-  - `lib/models/`
-  - `lib/services/`
-  - `lib/repositories/`
-  - `lib/providers/`
-  - `lib/screens/auth/`
-  - `lib/app/shell/`
-  - `lib/app/router.dart`
-  - `lib/app/theme.dart`
+  - `lib/core/` (Constants, errors, utilities)
+  - `lib/models/` (AppUser, Novel, Chapter, Bookmark, Follow, ReadingProgress, Comment, Report, Genre)
+  - `lib/services/` (AuthService with Firebase & Mock implementations)
+  - `lib/repositories/` (Firebase and Mock implementations for all 7 domain areas)
+  - `lib/providers/` (AuthProvider, NovelProvider, LibraryProvider, ReadingProvider, AuthorProvider, AdminProvider, SocialProvider)
+  - `lib/app/` (InkVerseApp, MainNavigationShell, router, theme)
   - `firestore.rules`, `firestore.indexes.json`
-- **Responsibilities**:
-  - Maintain compilation health and `flutter analyze` zero-issue baseline.
-  - Implement and maintain Firebase & in-memory mock repositories.
-  - Provide tested provider data contracts to Member 2 and Member 3.
-  - Maintain the navigation shell (`MainNavigationShell`) and router.
-  - Review and handle merging of teammate feature Pull Requests into `main`.
 
-### Member 2 (Reader UI)
-- **Target Screens**:
+### Reader Experience
+- **Screens**:
   - Reader Home (`lib/screens/reader/reader_home_screen.dart`)
   - Discover (`lib/screens/reader/discover_screen.dart`)
   - Novel Detail (`lib/screens/reader/novel_detail_screen.dart`)
   - Reading Screen (`lib/screens/reader/reading_screen.dart`)
   - Library Screen (`lib/screens/reader/library_screen.dart`)
   - Profile Screen (`lib/screens/reader/profile_screen.dart`)
-- **Important**: Consume data only through `AuthProvider`, `NovelProvider`, `LibraryProvider`, `ReadingProvider`, and `SocialProvider`. Do not query Firestore directly. Bottom navigation is managed by `MainNavigationShell`.
+- **Key Capabilities**:
+  - Direct repository integration through root `Provider<ChapterRepository>`.
+  - Comprehensive error handling with user-friendly retry states (no technical stack traces).
+  - Customizable typography and reading themes (light, dark, sepia).
 
-### Member 3 (Author & Admin UI)
-- **Target Screens**:
-  - Author Dashboard & My Novels (`lib/screens/author/author_dashboard_screen.dart`)
-  - Novel & Chapter Forms (`lib/screens/author/novel_form_screen.dart`, `chapter_form_screen.dart`)
-  - Admin Dashboard & Metrics (`lib/screens/admin/admin_dashboard_screen.dart`)
-  - User Moderation (`lib/screens/admin/user_management_screen.dart`)
+### Author Studio
+- **Screens**:
+  - Author Dashboard (`lib/screens/author/author_dashboard_screen.dart`)
+  - My Novels (`lib/screens/author/my_novels_screen.dart`)
+  - Novel Form (`lib/screens/author/novel_form_screen.dart`)
+  - Chapter Management (`lib/screens/author/chapter_management_screen.dart`)
+  - Chapter Form (`lib/screens/author/chapter_form_screen.dart`)
+- **Key Capabilities**:
+  - Create and edit serial novels with genre multi-selection and status tracking.
+  - Write multi-chapter serials with live word count calculation.
+  - Safe publishing workflow requiring at least one published chapter.
+  - Draft management and safe archiving without hard-deleting records.
+
+### Admin Console
+- **Screens**:
+  - Admin Dashboard (`lib/screens/admin/admin_dashboard_screen.dart`)
+  - User Management (`lib/screens/admin/user_management_screen.dart`)
   - Novel Moderation (`lib/screens/admin/novel_moderation_screen.dart`)
-  - Report Review (`lib/screens/admin/report_management_screen.dart`)
+  - Content Reports (`lib/screens/admin/report_management_screen.dart`)
   - Genre Taxonomy (`lib/screens/admin/genre_management_screen.dart`)
-- **Important**: Consume operations via `AuthorProvider` and `AdminProvider`. Do not bypass provider business logic or write raw Firestore queries.
+- **Key Capabilities**:
+  - Real-time overview of users, authors, published novels, pending reports, and comments.
+  - Account moderation with self-disable protection.
+  - Content hiding and restoring for policy enforcement.
+  - Full report resolution and dismissal workflow.
+  - Genre taxonomy creation, renaming, and activation toggling.
 
 ---
 
-## 3. Simplified Direct-to-Main Git Workflow
+## 3. Direct Git Workflow
 
-To reduce coordination friction, the team uses a **direct-to-main feature branch** model:
+All feature development merges directly into `main` after automated verification:
 
 ```text
-Lead:     feature/core-integration  ─────PR────► main
-Member 2: feature/reader-ui         ─────PR────► main
-Member 3: feature/author-admin-ui   ─────PR────► main
+feature/final-author-admin-integration ─────PR────► main
 ```
 
-### Member Step-by-Step Flow:
-1. **Branch from latest `main`**:
-   ```bash
-   git checkout main
-   git pull origin main
-   git checkout -b feature/<your-feature-name>
-   ```
-2. **Work and test on your feature branch**:
-   ```bash
-   flutter run -d chrome --dart-define=USE_MOCK_BACKEND=true
-   flutter test
-   ```
-3. **Synchronize before creating Pull Request**:
-   ```bash
-   git fetch origin
-   git merge origin/main
-   # resolve any conflicts, verify tests pass
-   flutter analyze
-   flutter test
-   git push origin feature/<your-feature-name>
-   ```
-4. **Open PR to `main`**:
-   Create a Pull Request on GitHub targeting `main`. When reviewed and verified, merge into `main`.
+### Verification Standard:
+- `dart format lib test` produces 0 changes.
+- `flutter analyze` produces 0 issues.
+- `flutter test` executes with 100% pass rate.
+- `flutter build web` succeeds in both mock and Firebase modes.

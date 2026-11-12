@@ -18,7 +18,7 @@ import '../user_repository.dart';
 ///
 /// Implements the exact same contracts as Firebase repositories to enable:
 /// - Instant offline/demo development without Firebase credentials
-/// - UI prototyping and verification for Member 2 (Reader) & Member 3 (Author/Admin)
+/// - Full end-to-end UI verification across Reader, Author, and Admin experiences
 /// - Robust automated and manual test flows
 /// ============================================================================
 

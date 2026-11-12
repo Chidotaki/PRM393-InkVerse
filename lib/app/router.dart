@@ -2,6 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/auth_provider.dart';
+import '../screens/admin/admin_dashboard_screen.dart';
+import '../screens/admin/genre_management_screen.dart';
+import '../screens/admin/novel_moderation_screen.dart';
+import '../screens/admin/report_management_screen.dart';
+import '../screens/admin/user_management_screen.dart';
+import '../screens/author/author_dashboard_screen.dart';
+import '../screens/author/chapter_form_screen.dart';
+import '../screens/author/chapter_management_screen.dart';
+import '../screens/author/my_novels_screen.dart';
+import '../screens/author/novel_form_screen.dart';
 import '../screens/auth/account_disabled_screen.dart';
 import '../screens/auth/auth_gate_screen.dart';
 import '../screens/auth/login_screen.dart';
@@ -12,7 +22,6 @@ import '../screens/reader/novel_detail_screen.dart';
 import '../screens/reader/profile_screen.dart';
 import '../screens/reader/reader_home_screen.dart';
 import '../screens/reader/reading_screen.dart';
-import 'integration_placeholders.dart';
 import 'shell/main_navigation_shell.dart';
 
 /// Centralized route paths for InkVerse.
@@ -42,6 +51,8 @@ class AppRoutes {
   static const String authorNovelEdit = '/author/novel/:id';
   static const String authorChapters = '/author/novel/:id/chapters';
   static const String authorChapterNew = '/author/novel/:id/chapter/new';
+  static const String authorChapterEdit =
+      '/author/novel/:id/chapter/:chapterId/edit';
 
   // Admin Routes
   static const String admin = '/admin';
@@ -59,6 +70,8 @@ class AppRoutes {
       '/author/novel/$novelId/chapters';
   static String authorChapterNewPath(String novelId) =>
       '/author/novel/$novelId/chapter/new';
+  static String authorChapterEditPath(String novelId, String chapterId) =>
+      '/author/novel/$novelId/chapter/$chapterId/edit';
 }
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
@@ -218,24 +231,24 @@ GoRouter createRouter(AuthProvider authProvider) {
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.author,
-        builder: (context, state) => const AuthorDashboardPlaceholderScreen(),
+        builder: (context, state) => const AuthorDashboardScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.authorNovels,
-        builder: (context, state) => const MyNovelsPlaceholderScreen(),
+        builder: (context, state) => const MyNovelsScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.authorNovelNew,
-        builder: (context, state) => const NovelFormPlaceholderScreen(),
+        builder: (context, state) => const NovelFormScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.authorNovelEdit,
         builder: (context, state) {
           final novelId = state.pathParameters['id'];
-          return NovelFormPlaceholderScreen(novelId: novelId);
+          return NovelFormScreen(novelId: novelId);
         },
       ),
       GoRoute(
@@ -243,7 +256,7 @@ GoRouter createRouter(AuthProvider authProvider) {
         path: AppRoutes.authorChapters,
         builder: (context, state) {
           final novelId = state.pathParameters['id'] ?? '';
-          return ChapterManagementPlaceholderScreen(novelId: novelId);
+          return ChapterManagementScreen(novelId: novelId);
         },
       ),
       GoRoute(
@@ -251,7 +264,16 @@ GoRouter createRouter(AuthProvider authProvider) {
         path: AppRoutes.authorChapterNew,
         builder: (context, state) {
           final novelId = state.pathParameters['id'] ?? '';
-          return ChapterFormPlaceholderScreen(novelId: novelId);
+          return ChapterFormScreen(novelId: novelId);
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.authorChapterEdit,
+        builder: (context, state) {
+          final novelId = state.pathParameters['id'] ?? '';
+          final chapterId = state.pathParameters['chapterId'] ?? '';
+          return ChapterFormScreen(novelId: novelId, chapterId: chapterId);
         },
       ),
 
@@ -259,27 +281,27 @@ GoRouter createRouter(AuthProvider authProvider) {
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.admin,
-        builder: (context, state) => const AdminDashboardPlaceholderScreen(),
+        builder: (context, state) => const AdminDashboardScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.adminUsers,
-        builder: (context, state) => const UserManagementPlaceholderScreen(),
+        builder: (context, state) => const UserManagementScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.adminNovels,
-        builder: (context, state) => const NovelModerationPlaceholderScreen(),
+        builder: (context, state) => const NovelModerationScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.adminReports,
-        builder: (context, state) => const ReportManagementPlaceholderScreen(),
+        builder: (context, state) => const ReportManagementScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.adminGenres,
-        builder: (context, state) => const GenreManagementPlaceholderScreen(),
+        builder: (context, state) => const GenreManagementScreen(),
       ),
     ],
   );

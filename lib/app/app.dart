@@ -116,6 +116,7 @@ class _InkVerseAppState extends State<InkVerseApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        Provider<ChapterRepository>.value(value: widget.chapterRepository),
         ChangeNotifierProvider<AuthProvider>.value(value: _authProvider),
         ChangeNotifierProvider<NovelProvider>.value(value: _novelProvider),
         ChangeNotifierProvider<LibraryProvider>.value(value: _libraryProvider),

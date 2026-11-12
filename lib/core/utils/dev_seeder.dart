@@ -20,7 +20,7 @@ class DevSeeder {
 
       if (existingNovels.docs.isNotEmpty) {
         if (kDebugMode) {
-          print(
+          debugPrint(
             '[InkVerse Seed] Firestore already contains data. Seeding skipped.',
           );
         }
@@ -28,7 +28,7 @@ class DevSeeder {
       }
 
       if (kDebugMode) {
-        print(
+        debugPrint(
           '[InkVerse Seed] Target collections are empty. Beginning dev seeding...',
         );
       }
@@ -52,7 +52,7 @@ class DevSeeder {
         }
         await genreBatch.commit();
         if (kDebugMode) {
-          print(
+          debugPrint(
             '[InkVerse Seed] Seeded ${AppConstants.defaultGenres.length} default genres.',
           );
         }
@@ -189,13 +189,13 @@ class DevSeeder {
       }
 
       if (kDebugMode) {
-        print(
+        debugPrint(
           '[InkVerse Seed] Seeded ${sampleNovels.length} novels and ${seedChapters.length} published chapters successfully.',
         );
       }
     } catch (e) {
       if (kDebugMode) {
-        print('[InkVerse Seed] Seeding error (non-fatal): $e');
+        debugPrint('[InkVerse Seed] Seeding error (non-fatal): $e');
       }
     }
   }

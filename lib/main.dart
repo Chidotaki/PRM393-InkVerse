@@ -32,12 +32,12 @@ void main() async {
       await Firebase.initializeApp();
       firebaseInitialized = true;
       if (kDebugMode) {
-        print('[InkVerse] Connected to Cloud Firebase successfully.');
+        debugPrint('[InkVerse] Connected to Cloud Firebase successfully.');
       }
     } catch (e) {
       firebaseInitError = e.toString();
       if (kDebugMode) {
-        print(
+        debugPrint(
           '[InkVerse] Firebase not yet configured or failed to initialize: $e\n'
           '[InkVerse] To configure Firebase, follow FIREBASE_SETUP.md.\n'
           '[InkVerse] To run with offline mock backend, use: --dart-define=USE_MOCK_BACKEND=true',
@@ -47,7 +47,7 @@ void main() async {
     }
   } else {
     if (kDebugMode) {
-      print(
+      debugPrint(
         '[InkVerse] USE_MOCK_BACKEND=true: Launching with in-memory mock suite.',
       );
     }

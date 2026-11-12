@@ -124,3 +124,34 @@ lib/
 3. **Repository Execution**: The Provider executes business logic and invokes the abstract Repository interface.
 4. **Backend Sync**: The concrete Repository performs a Firestore transaction or batch write.
 5. **Reactive State Update**: Upon completion, the Provider updates its local state and notifies listeners (`notifyListeners()`), updating UI instantly without blocking user navigation.
+
+
+---
+
+## 6. Application Shell & Navigation Architecture
+
+InkVerse employs a hybrid navigation structure using `go_router`:
+1. **Persistent Bottom Shell (`MainNavigationShell`)**:
+   Uses `StatefulShellRoute.indexedStack` to preserve state across Reader primary destinations:
+   - `/home` (Reader Home)
+   - `/discover` (Discover / Browse)
+   - `/library` (Follows / Bookmarks / History)
+   - `/profile` (User Account & Preferences)
+   Also displays an active shortcut badge for Authors (`/author`) and Admins (`/admin`).
+2. **Fullscreen Immersive Routes**:
+   Pushed on top of the root navigator (`_rootNavigatorKey`), automatically hiding the bottom navigation bar:
+   - `/novel/:id` (Novel Detail)
+   - `/novel/:id/chapter/:chapterId` (Reader Screen)
+   - `/author/*` (Author Dashboard, Novel & Chapter Forms)
+   - `/admin/*` (Admin Dashboard, User/Novel Moderation, Reports, Genres)
+
+---
+
+## 7. Simplified Direct-to-Main Workflow
+
+```text
+feature/core-integration   ──► Pull Request ──► main
+feature/reader-ui          ──► Pull Request ──► main
+feature/author-admin-ui    ──► Pull Request ──► main
+```
+Each member branches from `main`, tests locally with mock or Firebase backend, merges latest `main` prior to PR, and opens a PR targeting `main`.

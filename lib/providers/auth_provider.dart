@@ -66,7 +66,28 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       final profile = await userRepository.getUserProfile(uid);
-      _currentUser = profile;
+      if (profile == null) {
+        // Recovery edge-case: Auth user exists (session restore or partial register)
+        // but users/{uid} document is missing in Firestore.
+        // Safely recreate minimal reader profile; never auto-promote to admin or author.
+        final email = authService.currentUserEmail ?? '';
+        final fallbackName = email.contains('@')
+            ? email.split('@').first
+            : 'InkVerse Reader';
+        final fallback = AppUser(
+          uid: uid,
+          fullName: fallbackName,
+          email: email,
+          role: UserRole.reader,
+          isActive: true,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        await userRepository.createUserProfile(fallback);
+        _currentUser = fallback;
+      } else {
+        _currentUser = profile;
+      }
     } catch (e) {
       _error = AppException.from(e).message;
     } finally {

@@ -239,3 +239,77 @@ await admin.setGenreActive(id: gId, isActive: false);
 | `/admin/novels` | Novel Content Moderation | `feature/author-admin-ui` |
 | `/admin/reports` | Content Reports Review | `feature/author-admin-ui` |
 | `/admin/genres` | Genre Category Taxonomy | `feature/author-admin-ui` |
+
+
+---
+
+## 4. Route Navigation Helpers & Code Examples
+
+Do **NOT** hardcode raw route strings in your widgets. Always use `AppRoutes` and the provided path generator methods:
+
+```dart
+import 'package:go_router/go_router.dart';
+import 'package:inkverse/app/router.dart';
+
+// -------------------------------------------------------------
+// Reader Navigation Examples (Member 2)
+// -------------------------------------------------------------
+
+// Switch bottom navigation tabs in MainNavigationShell:
+context.go(AppRoutes.home);
+context.go(AppRoutes.discover);
+context.go(AppRoutes.library);
+context.go(AppRoutes.profile);
+
+// Navigate to fullscreen screens (hides bottom NavigationBar):
+context.push(AppRoutes.novelDetailPath(novel.id));
+context.push(AppRoutes.readingPath(novel.id, chapter.id));
+context.push(AppRoutes.bookmarks);
+context.push(AppRoutes.history);
+
+// -------------------------------------------------------------
+// Author Navigation Examples (Member 3)
+// -------------------------------------------------------------
+
+// Access Author Dashboard:
+context.push(AppRoutes.author);
+context.push(AppRoutes.authorNovels);
+context.push(AppRoutes.authorNovelNew);
+context.push(AppRoutes.authorNovelEditPath(novel.id));
+context.push(AppRoutes.authorChaptersPath(novel.id));
+context.push(AppRoutes.authorChapterNewPath(novel.id));
+
+// -------------------------------------------------------------
+// Admin Navigation Examples (Member 3)
+// -------------------------------------------------------------
+
+// Access Admin Console:
+context.push(AppRoutes.admin);
+context.push(AppRoutes.adminUsers);
+context.push(AppRoutes.adminNovels);
+context.push(AppRoutes.adminReports);
+context.push(AppRoutes.adminGenres);
+```
+
+---
+
+## 5. Simplified Direct-to-Main Git Collaboration
+
+To eliminate branching complexity, all team members branch from and merge directly into `main`:
+
+```bash
+# 1. Start feature work from latest main:
+git checkout main
+git pull origin main
+git checkout -b feature/<your-feature-name>
+
+# 2. Before submitting your Pull Request:
+git fetch origin
+git merge origin/main
+flutter analyze
+flutter test
+
+# 3. Push and open PR targeting main:
+git push origin feature/<your-feature-name>
+# Open PR: feature/<your-feature-name> -> main
+```

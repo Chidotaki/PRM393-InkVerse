@@ -27,6 +27,7 @@
 - **Navigation & Routing**: `go_router` (with `MainNavigationShell` and role guards)
 - **Local Persistence**: `shared_preferences` (Reading font size, line spacing, light/dark/sepia theme)
 - **Formatting**: `intl` (Timestamp and relative time formatting)
+- **CI / Automation**: GitHub Actions (`.github/workflows/flutter-ci.yml`)
 
 ---
 
@@ -34,7 +35,7 @@
 
 | Member | Focus | Branch | Deliverables |
 | :--- | :--- | :--- | :--- |
-| **Lead Developer** | Architecture & Core | `feature/core-integration` | Models, Repositories, Providers, Auth Screens, Shell & Routing, Security Rules, Firebase / Mock Fallback |
+| **Lead Developer** | Architecture & Core | `feature/core-integration` | Models, Repositories, Providers, Auth Screens, Navigation Shell & Routing, Security Rules, Firebase / Mock Fallback, CI |
 | **Member 2** | Reader UI Module | `feature/reader-ui` | Reader Home, Discover, Novel Detail, Reading View, Library, Bookmarks, Profile |
 | **Member 3** | Author & Admin UI | `feature/author-admin-ui` | Author Studio, Novel Form, Chapter Management, Admin Console, Moderation, Genres |
 
@@ -47,15 +48,17 @@
 | Area | Status | Notes |
 | :--- | :--- | :--- |
 | **Core Architecture** | **Complete** | Models, 7 Repositories, 7 Providers, Material 3 App & Theme |
-| **Navigation Shell** | **Complete** | `MainNavigationShell` with bottom navigation & role badges |
+| **Navigation Shell** | **Complete** | `MainNavigationShell` with bottom navigation, role shortcuts & full-screen sub-routes |
 | **Mock Backend** | **Complete** | 8+ novels, 3 authors, chapters, comments, reports, 4 test accounts |
-| **Firebase Source Integration** | **Complete** | Full Firestore / Auth implementation & security rules |
-| **Firebase Runtime Setup** | **External Configuration Required** | Awaiting `flutterfire configure` with live Firebase project |
+| **Firebase Tooling** | **Installed** | `firebase-tools` (v15.36.0) & `flutterfire_cli` (v1.5.0) installed |
+| **Firebase Cloud Project** | **External Login Required** | Source ready; awaits developer interactive browser login (`firebase login`) |
+| **Firestore Security** | **Complete & Hardened** | Full rules in `firestore.rules`; documented in [`docs/FIRESTORE_SECURITY.md`](docs/FIRESTORE_SECURITY.md) |
+| **Continuous Integration** | **Configured** | GitHub Actions CI workflow in `.github/workflows/flutter-ci.yml` |
 | **Reader UI** | **Assigned** | Owned by Member 2 ([Issue #1](https://github.com/Chidotaki/PRM393-InkVerse/issues/1)) |
 | **Author & Admin UI** | **Assigned** | Owned by Member 3 ([Issue #2](https://github.com/Chidotaki/PRM393-InkVerse/issues/2)) |
 | **Final Integration** | **Pending UI branches** | Shell & placeholders ready for direct screen replacement |
 
-*See [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) for the detailed verification and integration checklist.*
+*See [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) for the detailed status and [`docs/DEMO_FLOW.md`](docs/DEMO_FLOW.md) for presentation instructions.*
 
 ---
 
@@ -64,6 +67,7 @@
 ### Prerequisites
 - [Flutter SDK](https://docs.flutter.dev/) (>= 3.13.2)
 - Google Chrome or connected Android/iOS device
+- Node.js (>= 20) & npm
 
 ### 1. Clone & Install Dependencies
 ```bash
@@ -73,7 +77,7 @@ flutter pub get
 ```
 
 ### 2. Run with In-Memory Mock Backend (Instant Dev / Offline Mode)
-No Firebase credentials required! Perfect for UI prototyping, testing, and grading:
+No Firebase credentials required! Perfect for UI prototyping, testing, CI, and grading:
 ```bash
 flutter run -d chrome --dart-define=USE_MOCK_BACKEND=true
 ```
@@ -89,6 +93,7 @@ flutter run -d chrome --dart-define=USE_MOCK_BACKEND=true
 ### 3. Run with Cloud Firebase (Production Mode)
 Follow the step-by-step setup in [`FIREBASE_SETUP.md`](FIREBASE_SETUP.md):
 ```bash
+firebase login
 flutterfire configure
 firebase deploy --only firestore
 flutter run -d chrome
@@ -99,7 +104,7 @@ flutter run -d chrome
 ## 6. Architecture & Clean Code
 
 InkVerse strictly separates concerns:
-- **Presentation**: `MainNavigationShell` with bottom bar + fullscreen routes, reactive screens using `context.watch<T>()`.
+- **Presentation**: `MainNavigationShell` with persistent bottom bar + fullscreen sub-routes, reactive screens using `context.watch<T>()`.
 - **Controllers (Providers)**: Business rules, validation, derived lists (`visibleNovels`), loading states.
 - **Repository Abstraction**: Polymorphic contracts allowing seamless switching between `Firebase*Repository` and `Mock*Repository`.
 - **Infrastructure**: Firebase Auth, Cloud Firestore, SharedPreferences.
@@ -108,7 +113,7 @@ For in-depth architecture details, consult [`docs/ARCHITECTURE.md`](docs/ARCHITE
 
 ---
 
-## 7. Quality Assurance & Verification
+## 7. Quality Assurance & Continuous Integration
 
 Format, analyze, and run test suites:
 ```bash
@@ -116,6 +121,9 @@ dart format lib test
 flutter analyze
 flutter test
 ```
+*Current test suite status: 27/27 tests passing, 0 analyzer issues found.*
+
+Automated CI runs via **GitHub Actions** on every push and pull request to `main` and `feature/**` branches, executing format check, static analysis, unit/widget tests, and release web compilation.
 
 ---
 

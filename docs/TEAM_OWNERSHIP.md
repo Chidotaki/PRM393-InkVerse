@@ -8,7 +8,7 @@ This document defines module boundaries, ownership, and branch workflow for the 
 
 | Member | Role | Assigned Modules | Working Branch | GitHub Issue |
 | :--- | :--- | :--- | :--- | :--- |
-| **Lead Developer** | Architecture & Core Foundation | Models, Repositories, Providers, Services, Auth Screens, Routing, Security Rules, Firebase Integration | `feature/core-integration` | Lead Core Task |
+| **Lead Developer** | Architecture & Core Foundation | Models, Repositories, Providers, Services, Auth Screens, Navigation Shell, Routing, Security Rules, Firebase Integration | `feature/core-integration` | Lead Core Task |
 | **Member 2** | Reader UI Developer | Reader Home, Discover, Novel Detail, Reading Screen, Library, Profile, Reader reusable widgets | `feature/reader-ui` | Issue #1 |
 | **Member 3** | Author & Admin UI Developer | Author Dashboard, My Novels, Novel Form, Chapter Management, Admin Dashboard, Users, Moderation, Reports, Genres | `feature/author-admin-ui` | Issue #2 |
 
@@ -24,6 +24,7 @@ This document defines module boundaries, ownership, and branch workflow for the 
   - `lib/repositories/`
   - `lib/providers/`
   - `lib/screens/auth/`
+  - `lib/app/shell/`
   - `lib/app/router.dart`
   - `lib/app/theme.dart`
   - `firestore.rules`, `firestore.indexes.json`
@@ -31,7 +32,8 @@ This document defines module boundaries, ownership, and branch workflow for the 
   - Maintain compilation health and `flutter analyze` zero-issue baseline.
   - Implement and maintain Firebase & in-memory mock repositories.
   - Provide tested provider data contracts to Member 2 and Member 3.
-  - Handle merging of feature branches into `develop`.
+  - Maintain the navigation shell (`MainNavigationShell`) and router.
+  - Review and handle merging of teammate feature Pull Requests into `main`.
 
 ### Member 2 (Reader UI)
 - **Target Screens**:
@@ -41,7 +43,7 @@ This document defines module boundaries, ownership, and branch workflow for the 
   - Reading Screen (`lib/screens/reader/reading_screen.dart`)
   - Library Screen (`lib/screens/reader/library_screen.dart`)
   - Profile Screen (`lib/screens/reader/profile_screen.dart`)
-- **Important**: Consume data only through `AuthProvider`, `NovelProvider`, `LibraryProvider`, `ReadingProvider`, and `SocialProvider`. Do not query Firestore directly.
+- **Important**: Consume data only through `AuthProvider`, `NovelProvider`, `LibraryProvider`, `ReadingProvider`, and `SocialProvider`. Do not query Firestore directly. Bottom navigation is managed by `MainNavigationShell`.
 
 ### Member 3 (Author & Admin UI)
 - **Target Screens**:
@@ -56,11 +58,36 @@ This document defines module boundaries, ownership, and branch workflow for the 
 
 ---
 
-## 3. Collaboration Rules
+## 3. Simplified Direct-to-Main Git Workflow
 
-1. **Do not modify Repository or Provider interfaces independently**:
-   If an extra field or helper method is required, discuss with the Lead Developer so it can be added to both Firebase and Mock repository suites.
-2. **Pull from `develop` regularly**:
-   Keep your feature branch rebased/merged with `develop` to prevent diverged routes or dependencies.
-3. **No direct commits to `main`**:
-   All work merges through Pull Requests: `feature/*` -> `develop` -> `main`.
+To reduce coordination friction, the team uses a **direct-to-main feature branch** model:
+
+```text
+Lead:     feature/core-integration  ─────PR────► main
+Member 2: feature/reader-ui         ─────PR────► main
+Member 3: feature/author-admin-ui   ─────PR────► main
+```
+
+### Member Step-by-Step Flow:
+1. **Branch from latest `main`**:
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b feature/<your-feature-name>
+   ```
+2. **Work and test on your feature branch**:
+   ```bash
+   flutter run -d chrome --dart-define=USE_MOCK_BACKEND=true
+   flutter test
+   ```
+3. **Synchronize before creating Pull Request**:
+   ```bash
+   git fetch origin
+   git merge origin/main
+   # resolve any conflicts, verify tests pass
+   flutter analyze
+   flutter test
+   git push origin feature/<your-feature-name>
+   ```
+4. **Open PR to `main`**:
+   Create a Pull Request on GitHub targeting `main`. When reviewed and verified, merge into `main`.

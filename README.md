@@ -24,7 +24,7 @@
   - Firebase Authentication (Email/Password)
   - Cloud Firestore (Structured real-time NoSQL database)
 - **State Management**: Provider (`ChangeNotifierProvider`, `MultiProvider`)
-- **Navigation & Routing**: `go_router` (Guards for reader, author, and admin roles)
+- **Navigation & Routing**: `go_router` (with `MainNavigationShell` and role guards)
 - **Local Persistence**: `shared_preferences` (Reading font size, line spacing, light/dark/sepia theme)
 - **Formatting**: `intl` (Timestamp and relative time formatting)
 
@@ -34,7 +34,7 @@
 
 | Member | Focus | Branch | Deliverables |
 | :--- | :--- | :--- | :--- |
-| **Lead Developer** | Architecture & Core | `feature/core-integration` | Models, Repositories, Providers, Auth Screens, Routing, Security Rules, Firebase / Mock Fallback |
+| **Lead Developer** | Architecture & Core | `feature/core-integration` | Models, Repositories, Providers, Auth Screens, Shell & Routing, Security Rules, Firebase / Mock Fallback |
 | **Member 2** | Reader UI Module | `feature/reader-ui` | Reader Home, Discover, Novel Detail, Reading View, Library, Bookmarks, Profile |
 | **Member 3** | Author & Admin UI | `feature/author-admin-ui` | Author Studio, Novel Form, Chapter Management, Admin Console, Moderation, Genres |
 
@@ -42,19 +42,20 @@
 
 ---
 
-## 4. User Roles & Business Rules
+## 4. Current Project Status
 
-1. **Reader (Default)**:
-   - Created on registration.
-   - Can read published novels, follow novels, bookmark chapters, and leave comments.
-   - May choose to become an Author (`Reader -> Author` transition).
-2. **Author**:
-   - Retains all Reader capabilities.
-   - Can create draft novels, write chapters, and publish novels when at least one chapter is published.
-   - Cannot self-promote to Admin.
-3. **Admin**:
-   - Platform overseer: User suspension, novel moderation, report triage, genre taxonomy.
-   - **Admins CANNOT register through the UI**; they must be provisioned via Firebase console (see [`ADMIN_SETUP.md`](ADMIN_SETUP.md)).
+| Area | Status | Notes |
+| :--- | :--- | :--- |
+| **Core Architecture** | **Complete** | Models, 7 Repositories, 7 Providers, Material 3 App & Theme |
+| **Navigation Shell** | **Complete** | `MainNavigationShell` with bottom navigation & role badges |
+| **Mock Backend** | **Complete** | 8+ novels, 3 authors, chapters, comments, reports, 4 test accounts |
+| **Firebase Source Integration** | **Complete** | Full Firestore / Auth implementation & security rules |
+| **Firebase Runtime Setup** | **External Configuration Required** | Awaiting `flutterfire configure` with live Firebase project |
+| **Reader UI** | **Assigned** | Owned by Member 2 ([Issue #1](https://github.com/Chidotaki/PRM393-InkVerse/issues/1)) |
+| **Author & Admin UI** | **Assigned** | Owned by Member 3 ([Issue #2](https://github.com/Chidotaki/PRM393-InkVerse/issues/2)) |
+| **Final Integration** | **Pending UI branches** | Shell & placeholders ready for direct screen replacement |
+
+*See [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) for the detailed verification and integration checklist.*
 
 ---
 
@@ -89,7 +90,7 @@ flutter run -d chrome --dart-define=USE_MOCK_BACKEND=true
 Follow the step-by-step setup in [`FIREBASE_SETUP.md`](FIREBASE_SETUP.md):
 ```bash
 flutterfire configure
-firebase deploy --only firestore:rules,firestore:indexes
+firebase deploy --only firestore
 flutter run -d chrome
 ```
 
@@ -98,9 +99,9 @@ flutter run -d chrome
 ## 6. Architecture & Clean Code
 
 InkVerse strictly separates concerns:
-- **Presentation**: Reactive screens using `context.watch<T>()` and `context.read<T>()`.
+- **Presentation**: `MainNavigationShell` with bottom bar + fullscreen routes, reactive screens using `context.watch<T>()`.
 - **Controllers (Providers)**: Business rules, validation, derived lists (`visibleNovels`), loading states.
-- **Repository Abstraction**: Polymorphic contracts allowing seamless switching between `FirebaseUserRepository` and `MockUserRepository`.
+- **Repository Abstraction**: Polymorphic contracts allowing seamless switching between `Firebase*Repository` and `Mock*Repository`.
 - **Infrastructure**: Firebase Auth, Cloud Firestore, SharedPreferences.
 
 For in-depth architecture details, consult [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
@@ -115,14 +116,32 @@ dart format lib test
 flutter analyze
 flutter test
 ```
-*Current test suite status: 19/19 tests passing, 0 analyzer issues found.*
 
 ---
 
-## 8. Git Strategy & Merging
+## 8. Simplified Direct-to-Main Git Workflow
 
-- `main`: Production release branch.
-- `develop`: Integration branch.
-- `feature/core-integration`: Core architecture & foundation (Lead).
-- `feature/reader-ui`: Reader user interface (Member 2).
-- `feature/author-admin-ui`: Author and Admin user interfaces (Member 3).
+All members branch from `main` and submit Pull Requests directly into `main`:
+
+```text
+feature/core-integration   ──► Pull Request ──► main
+feature/reader-ui          ──► Pull Request ──► main
+feature/author-admin-ui    ──► Pull Request ──► main
+```
+
+### Standard Feature Flow:
+```bash
+# 1. Start from latest main
+git checkout main
+git pull origin main
+git checkout -b feature/<your-feature-name>
+
+# 2. Before creating PR, pull latest main changes and test
+git fetch origin
+git merge origin/main
+flutter analyze
+flutter test
+
+# 3. Push and open PR targeting main
+git push origin feature/<your-feature-name>
+```

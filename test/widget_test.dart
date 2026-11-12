@@ -80,7 +80,7 @@ void main() {
       expect(find.text('Profile'), findsWidgets);
 
       // Initial tab is Home
-      expect(find.text('Reader Home Screen'), findsWidgets);
+      expect(find.text('Trending Now'), findsWidgets);
 
       // Switch to Discover tab
       await tester.tap(find.text('Discover').last);
@@ -95,7 +95,7 @@ void main() {
       // Switch to Profile tab
       await tester.tap(find.text('Profile').last);
       await tester.pumpAndSettle();
-      expect(find.text('User Profile Screen'), findsWidgets);
+      expect(find.text('Edit Profile'), findsWidgets);
     },
   );
 }

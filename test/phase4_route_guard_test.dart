@@ -69,7 +69,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpAndSettle();
 
-      expect(find.text('Reader Home Screen'), findsWidgets);
+      expect(find.text('Trending Now'), findsOneWidget);
       expect(find.byType(NavigationBar), findsOneWidget);
     });
 

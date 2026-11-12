@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "414732831263",
+    "project_id": "inkverse-prm393-812005",
+    "storage_bucket": "inkverse-prm393-812005.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:414732831263:android:b5cf9e4beb590a0ab6e32a",
+        "android_client_info": {
+          "package_name": "com.prm393.inkverse.inkverse"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2KNDuM3VkMFGpwvBK7-twzu-OE9sW8Xw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

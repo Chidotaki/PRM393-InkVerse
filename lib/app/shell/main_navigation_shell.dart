@@ -11,7 +11,7 @@ import '../router.dart';
 /// 3. Library (`/library`)
 /// 4. Profile (`/profile`)
 ///
-/// Designed for Member 2 (Reader UI) and Member 3 (Author/Admin UI) integration.
+/// Provides unified navigation across reader, author, and admin roles.
 /// Fullscreen views (Novel Detail, Reading Screen, Author Studio, Admin Console)
 /// remain top-level routes outside this shell so bottom navigation is hidden.
 class MainNavigationShell extends StatelessWidget {

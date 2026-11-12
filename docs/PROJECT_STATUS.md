@@ -3,7 +3,7 @@
 **Project**: InkVerse (PRM393 University Group Project)  
 **Repository**: [Chidotaki/PRM393-InkVerse](https://github.com/Chidotaki/PRM393-InkVerse)  
 **Package**: `inkverse` (`com.prm393.inkverse`)  
-**Current Milestone**: Phase 5 Complete (Production Firebase Tooling Activated, CI Hardened, Route Guards Verified, Blocker Documented)  
+**Current Milestone**: Final Integration Complete (Reader Regression Resolved, Author Studio Complete, Admin Console Complete, Zero Placeholders Remaining)  
 
 ---
 
@@ -13,45 +13,28 @@
 | :--- | :--- | :--- |
 | **Core Architecture** | **Complete** | Models, 7 Repositories, 7 Providers, Material 3 App & Literary Theme |
 | **Navigation Shell** | **Complete** | `MainNavigationShell` with bottom navigation, role shortcuts & full-screen sub-routes |
-| **Mock Backend** | **Complete** | 8+ novels, 3 authors, chapters, comments, reports, 4 test accounts |
-| **Firebase CLI** | **Installed** | `firebase-tools` v15.36.0 installed globally via npm |
-| **FlutterFire CLI** | **Installed** | `flutterfire_cli` v1.5.0 activated via Dart Pub |
-| **Firebase Cloud Backend** | **Manual Auth Required** | CLI installed; awaits interactive browser OAuth (`firebase login`) by project owner |
-| **Firestore Rules & Config** | **Complete** | `firestore.rules`, `firestore.indexes.json`, `firebase.json`, `docs/FIRESTORE_SECURITY.md` |
-| **CI / Automation** | **Hardened** | GitHub Actions workflow: `.github/workflows/flutter-ci.yml` (`--fatal-warnings --no-fatal-infos`, Format, Analyze, Test, Web Build) |
-| **Route Guards & Security** | **Verified** | Verified with 5 dedicated route-guard tests across Unauthenticated, Disabled, Reader, Author, and Admin |
-| **Reader UI Module** | **Assigned** | Owned by Member 2 ([Issue #1](https://github.com/Chidotaki/PRM393-InkVerse/issues/1)) |
-| **Author & Admin UI** | **Assigned** | Owned by Member 3 ([Issue #2](https://github.com/Chidotaki/PRM393-InkVerse/issues/2)) |
-| **Final Integration** | **Pending UI Branches** | Clean placeholders ready to receive teammate screens directly |
+| **Reader UI Experience** | **Complete** | Reader Home, Discover, Novel Detail, Reading View, Library, Bookmarks, Profile |
+| **Author Studio** | **Complete** | Dashboard, My Novels portfolio, Novel creation/edit forms, Chapter management, Markdown editor |
+| **Admin Control Center** | **Complete** | Dashboard metrics, User management, Novel moderation, Content reports, Genre taxonomy |
+| **Mock Backend** | **Complete** | 10 realistic serialized novels, 36 chapters, comments, reports, 4 test accounts |
+| **Firebase Cloud Backend** | **Configured** | Project `inkverse-prm393-812005` active; Web + Android configs generated; rules and indexes deployed |
+| **Firebase Dev Seeder** | **Hardened** | Idempotent admin-gated seeding via Profile screen under `ENABLE_DEV_SEED=true` |
+| **CI / Automation** | **Hardened** | GitHub Actions workflow: `.github/workflows/flutter-ci.yml` (Format, Analyze, Test, Web Build) |
+| **Placeholder Code** | **Zero Remaining** | All placeholder screens and temporary ownership comments completely removed |
 
 ---
 
-## 2. Phase 5 Verification Results
+## 2. Test & Verification Baseline
 
-- **Automated Tests**: **27/27 tests passed** across 4 test suites:
+- **Automated Tests**: **41/41 tests passing** across 5 test suites:
   - `test/core_business_test.dart` (18 tests: Auth validation, Novel lifecycle, Chapter sequencing, Comment/Bookmark/History, Admin moderation)
-  - `test/phase3_navigation_test.dart` (2 tests: Navigation shell routing, bottom navigation tabs)
+  - `test/dev_seed_flow_test.dart` (4 tests: Deterministic IDs, Catalog document IDs, Unauthenticated call rejection, Profile gating)
+  - `test/final_author_admin_test.dart` (6 tests: NovelDetail ChapterRepository injection, Author Dashboard metrics, My Novels filters, Admin Dashboard metrics, User self-disable protection, Route helpers)
   - `test/phase4_route_guard_test.dart` (5 tests: Unauthenticated redirect, disabled account redirect, reader home, author dashboard, admin console)
-  - `test/widget_test.dart` (2 tests: App smoke test, dev seeder toggle)
-- **Static Analysis**: `flutter analyze` completed with **0 issues**.
-- **Code Formatting**: `dart format --output=none --set-exit-if-changed lib test` clean.
-- **Web Build**: `flutter build web --dart-define=USE_MOCK_BACKEND=true` compiles successfully.
-- **CI Hardening**: Replaced all `print` with `debugPrint` in `lib/main.dart` and `lib/core/utils/dev_seeder.dart`. Configured CI with `--fatal-warnings --no-fatal-infos` to ensure robust lint compliance on GitHub Actions runners.
-
----
-
-## 3. External Blockers & Next Actions
-
-1. **BLOCKER: FIREBASE CLI AUTHENTICATION REQUIRED**:
-   - `firebase login:list` reports `! No authorized accounts, run "firebase login"`.
-   - `firebase projects:list` fails with authentication required.
-   - Both `$env:FIREBASE_TOKEN` and `$env:GOOGLE_APPLICATION_CREDENTIALS` are unpopulated in the headless runner environment.
-   - **Resolution for Developer**:
-     1. Open terminal on your local machine with browser access.
-     2. Run `firebase login` and complete Google OAuth in the browser.
-     3. Run `flutterfire configure --project=<your-firebase-project-id>`.
-     4. Run `firebase deploy --only firestore:rules,firestore:indexes`.
-
-2. **Teammate UI Deliverables**:
-   - Member 2: Pull latest `main`, branch `feature/reader-ui`, and replace Reader screen placeholders.
-   - Member 3: Pull latest `main`, branch `feature/author-admin-ui`, and replace Author and Admin screen placeholders.
+  - `test/widget_test.dart` (2 tests: App smoke test, NavigationShell branch switching)
+  - `test/phase6_reader_ui_test.dart` (6 tests: NovelCover fallback, NovelCard components, Reading controls)
+- **Static Analysis**: `flutter analyze` completes with **No issues found!** (0 errors, 0 warnings, 0 lints).
+- **Code Formatting**: `dart format lib test` fully clean.
+- **Web Builds**:
+  - Mock mode: `flutter build web --dart-define=USE_MOCK_BACKEND=true` compiles successfully.
+  - Cloud Firebase mode: `flutter build web` compiles successfully.

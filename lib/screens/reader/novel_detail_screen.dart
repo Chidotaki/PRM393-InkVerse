@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -70,9 +71,12 @@ class _NovelDetailScreenState extends State<NovelDetailScreen> {
         }
       }
     } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[NovelDetail] Failed to load novel: $e');
+      }
       if (mounted) {
         setState(() {
-          _error = e.toString();
+          _error = 'Unable to load this novel right now.';
           _loading = false;
         });
       }
@@ -103,25 +107,64 @@ class _NovelDetailScreenState extends State<NovelDetailScreen> {
 
     if (_novel == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Not Found')),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.menu_book, size: 48, color: Colors.grey),
-              const SizedBox(height: 12),
-              Text(
-                _error != null
-                    ? 'Failed to load novel: $_error'
-                    : 'Novel not found or is currently unavailable.',
-                textAlign: TextAlign.center,
+        appBar: AppBar(title: const Text('Novel Details')),
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _error != null ? Icons.error_outline : Icons.menu_book,
+                      size: 56,
+                      color: _error != null
+                          ? colorScheme.error
+                          : colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _error ?? 'Novel not found or is currently unavailable.',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _error != null
+                          ? 'Please check your connection or try again.'
+                          : 'The novel you requested could not be located.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        if (_error != null)
+                          ElevatedButton.icon(
+                            onPressed: _loadData,
+                            icon: const Icon(Icons.refresh, size: 18),
+                            label: const Text('Retry'),
+                          ),
+                        OutlinedButton.icon(
+                          onPressed: () => context.pop(),
+                          icon: const Icon(Icons.arrow_back, size: 18),
+                          label: const Text('Go Back'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => context.pop(),
-                child: const Text('Go Back'),
-              ),
-            ],
+            ),
           ),
         ),
       );

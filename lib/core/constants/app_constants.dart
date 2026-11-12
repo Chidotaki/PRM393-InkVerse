@@ -5,6 +5,12 @@ class AppConstants {
   static const String appName = 'InkVerse';
   static const String appTagline = 'Serial Novel Platform';
 
+  // Development Feature Flags
+  static const bool enableDevSeed = bool.fromEnvironment(
+    'ENABLE_DEV_SEED',
+    defaultValue: false,
+  );
+
   // Seed / Fallback defaults
   static const List<String> defaultGenres = [
     'Fantasy',

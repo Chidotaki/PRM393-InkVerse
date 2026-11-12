@@ -1,14 +1,13 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'app/app.dart';
-import 'core/utils/dev_seeder.dart';
+import 'core/constants/app_constants.dart';
+import 'firebase_options.dart';
 import 'repositories/repositories.dart';
 import 'screens/firebase_unconfigured_screen.dart';
 import 'services/auth_service.dart';
-import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,10 +17,7 @@ void main() async {
     defaultValue: false,
   );
 
-  const bool enableDevSeed = bool.fromEnvironment(
-    'ENABLE_DEV_SEED',
-    defaultValue: false,
-  );
+  const bool enableDevSeed = AppConstants.enableDevSeed;
 
   bool firebaseInitialized = false;
   String? firebaseInitError;
@@ -36,6 +32,11 @@ void main() async {
       firebaseInitialized = true;
       if (kDebugMode) {
         debugPrint('[InkVerse] Connected to Cloud Firebase successfully.');
+        if (enableDevSeed) {
+          debugPrint(
+            '[InkVerse] ENABLE_DEV_SEED=true: Seed tools available under Profile.',
+          );
+        }
       }
     } catch (e) {
       firebaseInitError = e.toString();
@@ -77,9 +78,8 @@ void main() async {
     final reportRepo = FirebaseReportRepository();
     final genreRepo = FirebaseGenreRepository();
 
-    if (enableDevSeed) {
-      await DevSeeder.seedIfEmpty(FirebaseFirestore.instance);
-    }
+    // Note: Development seeding is secured behind authenticated admin flow
+    // and can be triggered via Profile -> Development Tools when ENABLE_DEV_SEED is active.
 
     runApp(
       InkVerseApp(

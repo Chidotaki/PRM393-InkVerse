@@ -1,18 +1,30 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../app/router.dart';
+import '../../core/constants/app_constants.dart';
+import '../../core/utils/dev_seeder.dart';
 import '../../models/app_user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/library_provider.dart';
+import '../../providers/novel_provider.dart';
 import '../../providers/reading_provider.dart';
 import '../../widgets/user_avatar.dart';
 
 /// Account Profile screen presenting reader identity, role transitions (Become Author / Studio / Admin),
-/// library statistics, profile editing, and reading preferences.
-class ProfileScreen extends StatelessWidget {
+/// library statistics, profile editing, reading preferences, and development seed tools.
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool _seeding = false;
 
   @override
   Widget build(BuildContext context) {
@@ -192,6 +204,12 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 20),
+
+                // Development Tools (Strictly gated by kDebugMode && ENABLE_DEV_SEED)
+                if (kDebugMode && AppConstants.enableDevSeed) ...[
+                  _buildDevToolsSection(context, auth),
+                  const SizedBox(height: 20),
+                ],
 
                 // Additional Settings Actions
                 ListTile(
@@ -569,5 +587,217 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildDevToolsSection(BuildContext context, AuthProvider auth) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B).withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.amber.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.developer_mode,
+                  color: Colors.amber,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Development Tools',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.amber[200],
+                      ),
+                    ),
+                    Text(
+                      'ENABLE_DEV_SEED is active',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Creates missing demo genres, novels, chapters and comments. Existing records are preserved.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (!auth.isAuthenticated)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colorScheme.errorContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 18, color: colorScheme.error),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Sign in with the development admin account before seeding demo content.',
+                      style: TextStyle(color: colorScheme.error, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else if (!auth.isAdmin)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colorScheme.errorContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.lock_outline, size: 18, color: colorScheme.error),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Demo content can only be seeded by an administrator.\n(Set role = admin in Firebase Console)',
+                      style: TextStyle(color: colorScheme.error, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber[700],
+                  foregroundColor: Colors.black87,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                icon: _seeding
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.black87,
+                        ),
+                      )
+                    : const Icon(Icons.cloud_upload_outlined),
+                label: Text(
+                  _seeding ? 'Seeding Demo Catalog...' : 'Seed Demo Catalog',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                onPressed: _seeding ? null : () => _handleSeedCatalog(auth),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleSeedCatalog(AuthProvider auth) async {
+    setState(() => _seeding = true);
+
+    try {
+      final user = auth.currentUser;
+      final result = await DevSeeder.seedDemoCatalog(
+        firestore: FirebaseFirestore.instance,
+        currentUserId: auth.currentUid ?? '',
+        currentUserName: user?.fullName ?? 'Administrator',
+        currentUser: user,
+      );
+
+      if (!mounted) return;
+
+      if (result.success) {
+        // Refresh novel provider if available
+        try {
+          context.read<NovelProvider>().fetchNovels();
+        } catch (_) {}
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.teal[800],
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    result.message,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Theme.of(context).colorScheme.error,
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    result.message,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Theme.of(context).colorScheme.error,
+          content: Text('Seeding error: $e'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _seeding = false);
+      }
+    }
   }
 }

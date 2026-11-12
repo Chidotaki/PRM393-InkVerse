@@ -267,6 +267,17 @@ class FirebaseNovelRepository implements NovelRepository {
   @override
   Future<void> restoreNovel(String id) async {
     try {
+      final doc = await _novelsCol.doc(id).get();
+      if (!doc.exists || doc.data() == null) {
+        throw const NotFoundException('Novel not found.');
+      }
+      final novel = Novel.fromMap(doc.data()!, documentId: doc.id);
+      if (novel.publishedAt == null && novel.chapterCount == 0) {
+        throw const ValidationException(
+          'Cannot restore an incomplete draft novel to published state.',
+        );
+      }
+
       await _novelsCol.doc(id).update({
         'visibility': NovelVisibility.published.toValue(),
         'updatedAt': FieldValue.serverTimestamp(),

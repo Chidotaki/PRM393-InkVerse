@@ -1,9 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'app/app.dart';
+import 'core/utils/dev_seeder.dart';
 import 'repositories/repositories.dart';
+import 'screens/firebase_unconfigured_screen.dart';
 import 'services/auth_service.dart';
 
 void main() async {
@@ -20,7 +23,9 @@ void main() async {
   );
 
   bool firebaseInitialized = false;
+  String? firebaseInitError;
 
+  // 1. In mock backend mode, DO NOT call Firebase.initializeApp()
   if (!forceMockBackend) {
     try {
       // Attempts initialization if platform configuration (google-services.json / GoogleService-Info.plist) exists
@@ -30,11 +35,12 @@ void main() async {
         print('[InkVerse] Connected to Cloud Firebase successfully.');
       }
     } catch (e) {
+      firebaseInitError = e.toString();
       if (kDebugMode) {
         print(
-          '[InkVerse] Firebase not yet configured or failed to initialize ($e).\n'
-          '[InkVerse] Falling back to development mock backend.\n'
-          '[InkVerse] To configure Firebase, follow FIREBASE_SETUP.md.',
+          '[InkVerse] Firebase not yet configured or failed to initialize: $e\n'
+          '[InkVerse] To configure Firebase, follow FIREBASE_SETUP.md.\n'
+          '[InkVerse] To run with offline mock backend, use: --dart-define=USE_MOCK_BACKEND=true',
         );
       }
       firebaseInitialized = false;
@@ -47,7 +53,17 @@ void main() async {
     }
   }
 
-  // Choose between Firebase or Mock In-Memory backend
+  // 2. Production mode without Firebase credentials -> show clear startup screen
+  if (!forceMockBackend && !firebaseInitialized) {
+    runApp(
+      FirebaseUnconfiguredScreen(
+        errorDetails: firebaseInitError ?? 'Firebase credentials not found. Run flutterfire configure or see FIREBASE_SETUP.md.',
+      ),
+    );
+    return;
+  }
+
+  // 3. Launch with Cloud Firebase Backend
   if (firebaseInitialized) {
     final authService = FirebaseAuthService();
     final userRepo = FirebaseUserRepository();
@@ -59,8 +75,7 @@ void main() async {
     final genreRepo = FirebaseGenreRepository();
 
     if (enableDevSeed) {
-      // Optional development seed per Section 51
-      await genreRepo.seedDefaultGenres();
+      await DevSeeder.seedIfEmpty(FirebaseFirestore.instance);
     }
 
     runApp(
@@ -76,7 +91,7 @@ void main() async {
       ),
     );
   } else {
-    // Development Mock Backend Suite
+    // 4. Launch with Development Mock Backend
     final mockAuth = MockAuthService();
     final mockUser = MockUserRepository();
     final mockNovel = MockNovelRepository();

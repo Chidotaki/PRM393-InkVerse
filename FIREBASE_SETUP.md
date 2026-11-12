@@ -1,5 +1,19 @@
 # InkVerse – Firebase Configuration & Deployment Guide
 
+## Setup Status Summary
+
+| Component | Status | Details |
+| :--- | :--- | :--- |
+| **Firebase Source Integration** | **COMPLETE** | Auth service, Repositories, Providers, and Error handlers fully implemented |
+| **FlutterFire Configuration** | **REQUIRED** | Awaiting `flutterfire configure` by project lead / DevOps |
+| **Firebase Project** | **NOT CONFIGURED** | Needs target Firebase Project ID created in Google Console |
+| **Email/Password Auth** | **REQUIRES USER ACTION** | Must be toggled ON in Firebase Authentication console |
+| **Firestore Security Rules** | **READY** | Configured in `firestore.rules` (Role boundaries & ownership secured) |
+| **Firestore Query Indexes** | **READY** | Configured in `firestore.indexes.json` |
+| **Dev Mock Backend Fallback** | **ACTIVE & TESTED** | `flutter run -d chrome --dart-define=USE_MOCK_BACKEND=true` |
+
+---
+
 This guide details the exact steps for setting up Google Firebase for **InkVerse (Serial Novel Platform)**.
 
 ---

@@ -59,15 +59,22 @@ class ReadingProvider extends ChangeNotifier {
   Future<void> _loadPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      _fontSize =
+      final loadedFontSize =
           prefs.getDouble(AppConstants.prefFontSize) ??
           AppConstants.defaultFontSize;
-      _lineSpacing =
+      _fontSize = loadedFontSize.clamp(12.0, 32.0);
+
+      final loadedLineSpacing =
           prefs.getDouble(AppConstants.prefLineSpacing) ??
           AppConstants.defaultLineSpacing;
+      _lineSpacing = loadedLineSpacing.clamp(1.2, 2.4);
+
+      final savedTheme = prefs.getString(AppConstants.prefReadingTheme);
       _readingTheme =
-          prefs.getString(AppConstants.prefReadingTheme) ??
-          AppConstants.defaultReadingTheme;
+          (savedTheme != null &&
+              ['light', 'dark', 'sepia'].contains(savedTheme))
+          ? savedTheme
+          : AppConstants.defaultReadingTheme;
       notifyListeners();
     } catch (_) {
       // Use defaults if prefs fail

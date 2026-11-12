@@ -6,6 +6,12 @@ import '../screens/auth/account_disabled_screen.dart';
 import '../screens/auth/auth_gate_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
+import '../screens/reader/discover_screen.dart';
+import '../screens/reader/library_screen.dart';
+import '../screens/reader/novel_detail_screen.dart';
+import '../screens/reader/profile_screen.dart';
+import '../screens/reader/reader_home_screen.dart';
+import '../screens/reader/reading_screen.dart';
 import 'integration_placeholders.dart';
 import 'shell/main_navigation_shell.dart';
 
@@ -148,8 +154,7 @@ GoRouter createRouter(AuthProvider authProvider) {
             routes: [
               GoRoute(
                 path: AppRoutes.home,
-                builder: (context, state) =>
-                    const ReaderHomePlaceholderScreen(),
+                builder: (context, state) => const ReaderHomeScreen(),
               ),
             ],
           ),
@@ -157,7 +162,7 @@ GoRouter createRouter(AuthProvider authProvider) {
             routes: [
               GoRoute(
                 path: AppRoutes.discover,
-                builder: (context, state) => const DiscoverPlaceholderScreen(),
+                builder: (context, state) => const DiscoverScreen(),
               ),
             ],
           ),
@@ -165,7 +170,7 @@ GoRouter createRouter(AuthProvider authProvider) {
             routes: [
               GoRoute(
                 path: AppRoutes.library,
-                builder: (context, state) => const LibraryPlaceholderScreen(),
+                builder: (context, state) => const LibraryScreen(),
               ),
             ],
           ),
@@ -173,7 +178,7 @@ GoRouter createRouter(AuthProvider authProvider) {
             routes: [
               GoRoute(
                 path: AppRoutes.profile,
-                builder: (context, state) => const ProfilePlaceholderScreen(),
+                builder: (context, state) => const ProfileScreen(),
               ),
             ],
           ),
@@ -184,19 +189,19 @@ GoRouter createRouter(AuthProvider authProvider) {
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.bookmarks,
-        builder: (context, state) => const BookmarksPlaceholderScreen(),
+        builder: (context, state) => const LibraryScreen(initialTabIndex: 1),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.history,
-        builder: (context, state) => const ReadingHistoryPlaceholderScreen(),
+        builder: (context, state) => const LibraryScreen(initialTabIndex: 2),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.novelDetail,
         builder: (context, state) {
           final novelId = state.pathParameters['id'] ?? '';
-          return NovelDetailPlaceholderScreen(novelId: novelId);
+          return NovelDetailScreen(novelId: novelId);
         },
       ),
       GoRoute(
@@ -205,10 +210,7 @@ GoRouter createRouter(AuthProvider authProvider) {
         builder: (context, state) {
           final novelId = state.pathParameters['id'] ?? '';
           final chapterId = state.pathParameters['chapterId'] ?? '';
-          return ReadingPlaceholderScreen(
-            novelId: novelId,
-            chapterId: chapterId,
-          );
+          return ReadingScreen(novelId: novelId, chapterId: chapterId);
         },
       ),
 

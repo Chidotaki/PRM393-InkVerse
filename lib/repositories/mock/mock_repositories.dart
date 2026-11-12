@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/errors/app_exception.dart';
+import '../../core/utils/demo_catalog_data.dart';
 import '../../models/models.dart';
 import '../../services/auth_service.dart';
 import '../chapter_repository.dart';
@@ -294,7 +295,7 @@ class MockNovelRepository implements NovelRepository {
         authorName: 'Bob Novelist',
         title: 'The Last Star Keeper',
         description: 'When the ancient celestial lanterns begin flickering out one by one, an apprentice starlight weaver embarks on a dangerous cosmic journey across dying nebulae.',
-        coverUrl: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=600',
+        coverUrl: '',
         genres: const ['Sci-Fi', 'Adventure'],
         status: NovelStatus.ongoing,
         visibility: NovelVisibility.published,
@@ -311,7 +312,7 @@ class MockNovelRepository implements NovelRepository {
         authorName: 'Bob Novelist',
         title: 'Echoes Beyond Midnight',
         description: 'A detective with the ability to hear lingering auditory memories uncovers an unsolved murder deep within an abandoned Victorian asylum.',
-        coverUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600',
+        coverUrl: '',
         genres: const ['Mystery', 'Horror'],
         status: NovelStatus.ongoing,
         visibility: NovelVisibility.published,
@@ -328,8 +329,7 @@ class MockNovelRepository implements NovelRepository {
         authorName: 'Bob Novelist',
         title: "The Clockmaker's Daughter",
         description: 'In a steampunk metropolis where time is strictly rationed by the governing guild, a rebellious artisan builds a mechanism that can bend seconds into hours.',
-        coverUrl:
-            'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=600',
+        coverUrl: '',
         genres: const ['Fantasy', 'Romance'],
         status: NovelStatus.completed,
         visibility: NovelVisibility.published,
@@ -346,7 +346,7 @@ class MockNovelRepository implements NovelRepository {
         authorName: 'Bob Novelist',
         title: 'Ashes of the Northern Crown',
         description: 'A fallen prince must unite rival mountain clans when a frozen blight awakens from the glacial depths of the forbidden peaks.',
-        coverUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600',
+        coverUrl: '',
         genres: const ['Fantasy', 'Adventure', 'Drama'],
         status: NovelStatus.ongoing,
         visibility: NovelVisibility.published,
@@ -363,7 +363,7 @@ class MockNovelRepository implements NovelRepository {
         authorName: 'Bob Novelist',
         title: 'Seven Days Before Tomorrow',
         description: 'Trapped in a recursive temporal loop spanning a single fateful summer week, two childhood rivals must make peace before time collapses entirely.',
-        coverUrl: 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=600',
+        coverUrl: '',
         genres: const ['Drama', 'Slice of Life', 'Comedy'],
         status: NovelStatus.hiatus,
         visibility: NovelVisibility.published,
@@ -380,7 +380,7 @@ class MockNovelRepository implements NovelRepository {
         authorName: 'Elena Rostova',
         title: 'City of Glass Rivers',
         description: 'Beneath the transparent obsidian bridges of Oakhaven, a network of forgotten aqueducts carries memories distilled into luminous liquid glass.',
-        coverUrl: 'https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=600',
+        coverUrl: '',
         genres: const ['Fantasy', 'Mystery'],
         status: NovelStatus.ongoing,
         visibility: NovelVisibility.published,
@@ -397,7 +397,7 @@ class MockNovelRepository implements NovelRepository {
         authorName: 'Elena Rostova',
         title: 'The Orchard at the End of Winter',
         description: 'An elderly botanist and a wayward traveler cultivate frost-resistant apple groves while sharing stories of the world before the eternal permafrost arrived.',
-        coverUrl: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600',
+        coverUrl: '',
         genres: const ['Slice of Life', 'Romance', 'Drama'],
         status: NovelStatus.completed,
         visibility: NovelVisibility.published,
@@ -414,7 +414,7 @@ class MockNovelRepository implements NovelRepository {
         authorName: 'Marcus Sterling',
         title: 'Letters from the Hollow Moon',
         description: 'Transmissions from a subterranean lunar research facility cease unexpectedly, leaving a lone radio communications specialist to decipher the encrypted logs.',
-        coverUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600',
+        coverUrl: '',
         genres: const ['Sci-Fi', 'Drama'],
         status: NovelStatus.ongoing,
         visibility: NovelVisibility.published,
@@ -445,6 +445,10 @@ class MockNovelRepository implements NovelRepository {
 
     for (final novel in seeds) {
       _novels[novel.id] = novel;
+    }
+
+    for (final demo in DemoCatalogData.getDemoNovels(now)) {
+      _novels[demo.id] = demo;
     }
   }
 
@@ -894,6 +898,10 @@ class MockChapterRepository implements ChapterRepository {
       publishedAt: null,
       wordCount: 10,
     );
+
+    for (final demoChap in DemoCatalogData.getDemoChapters(now)) {
+      _chapters[demoChap.id] = demoChap;
+    }
   }
 
   @override
@@ -1116,8 +1124,7 @@ class MockLibraryRepository implements LibraryRepository {
       userId: 'mock_user_reader',
       novelId: 'novel_1',
       novelTitle: 'The Last Star Keeper',
-      coverUrl:
-          'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=600',
+      coverUrl: '',
       chapterId: 'chap_1_2',
       chapterTitle: 'Chapter 2: The Weave of Shadows',
       chapterNumber: 2,
@@ -1127,13 +1134,28 @@ class MockLibraryRepository implements LibraryRepository {
       userId: 'mock_user_reader',
       novelId: 'novel_6',
       novelTitle: 'City of Glass Rivers',
-      coverUrl:
-          'https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=600',
+      coverUrl: '',
       chapterId: 'chap_6_1',
       chapterTitle: 'Chapter 1: The Glassmaker’s Secret',
       chapterNumber: 1,
       progressPercent: 0.65,
     );
+
+    _follows['mock_user_reader_demo_novel_echoes_gate'] = Follow.create(
+      userId: 'mock_user_reader',
+      novelId: 'demo_novel_echoes_gate',
+    );
+    _reading['mock_user_reader_demo_novel_echoes_gate'] =
+        ReadingProgress.create(
+          userId: 'mock_user_reader',
+          novelId: 'demo_novel_echoes_gate',
+          novelTitle: 'Echoes Beyond the Gate',
+          coverUrl: '',
+          chapterId: 'demo_echoes_ch_001',
+          chapterTitle: "The Door That Shouldn't Exist",
+          chapterNumber: 1,
+          progressPercent: 0.65,
+        );
   }
 
   @override
@@ -1268,6 +1290,10 @@ class MockCommentRepository implements CommentRepository {
       content: 'Molten sapphire rivers! What a wonderful fantasy concept.',
       createdAt: DateTime.now().subtract(const Duration(hours: 14)),
     );
+
+    for (final c in DemoCatalogData.getDemoComments(DateTime.now())) {
+      _comments[c.id] = c;
+    }
   }
 
   @override

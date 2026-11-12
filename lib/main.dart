@@ -8,6 +8,7 @@ import 'core/utils/dev_seeder.dart';
 import 'repositories/repositories.dart';
 import 'screens/firebase_unconfigured_screen.dart';
 import 'services/auth_service.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +30,9 @@ void main() async {
   if (!forceMockBackend) {
     try {
       // Attempts initialization if platform configuration (google-services.json / GoogleService-Info.plist) exists
-      await Firebase.initializeApp();
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
       firebaseInitialized = true;
       if (kDebugMode) {
         debugPrint('[InkVerse] Connected to Cloud Firebase successfully.');
